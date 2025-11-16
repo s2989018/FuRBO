@@ -9,9 +9,11 @@ import torch
 # Custom imports
 from fcn.utilities import multivariate_circular
 
+
 # Function to update the trust region with a smaller radius circle
 def multinormal_radius(state,                # FuRBO state
                        percentage = 0.1,     # Percentage to define trust region (default 10%)
+                       tr_shape = "hypersphere",# "axis_box", "pca_box", or "ellipsoid"
                        **tkwargs):
     '''Function to sample Multinormal Distribution of GPRs and define trust region'''
     # Update the trust regions based on the feasible region
@@ -78,10 +80,24 @@ def multinormal_radius(state,                # FuRBO state
                 n_samples_tr = 4
                 
             top_values, top_indices = torch.topk(samples_cc, n_samples_tr, largest=False)
+
+        X_top = samples[top_indices]
+
+        if tr_shape == "hypersphere":
+            # Center
+            center = x_candidate
+
+            # Radius
+            dist = torch.linalg.norm(X_top - center, dim=1)
+            r = dist.max()
+
+            state.tr_lb[ind] = torch.maximum(center - r, lb)
+            state.tr_ub[ind] = torch.minimum(center + r, ub)
+            
+        else:  # original - Set the box around the selected samples
+            state.tr_lb[ind] = torch.min(samples[top_indices], dim=0).values
+            state.tr_ub[ind] = torch.max(samples[top_indices], dim=0).values
         
-        # Set the box around the selected samples
-        state.tr_lb[ind] = torch.min(samples[top_indices], dim=0).values
-        state.tr_ub[ind] = torch.max(samples[top_indices], dim=0).values
         
         # Update volume of trust region
         state.tr_vol[ind] = torch.prod(state.tr_ub[ind] - state.tr_lb[ind])
