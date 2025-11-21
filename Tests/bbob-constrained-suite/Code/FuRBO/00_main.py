@@ -58,31 +58,41 @@ import plotting
 suite_name = "bbob-constrained"
 suite = cocoex.Suite(suite_name, "", "")
 
+
+
 # Load random seeds
 seeds = np.load('random_seeds.npy')
 
 # Base directory for saving files
 cwd_base = os.path.join(os.getcwd(), 'results')
 
+os.makedirs(cwd_base, exist_ok=True)
+
 # General log file
 f_gen = open(os.path.join(cwd_base, '00_GeneralLog.txt'), 'w')
 
+# functions_to_run = ['f002', 'f004', 'f006', 'f050', 'f052', 'f054']
+functions_to_run = ['f002']
+instances_to_run = ['i01', 'i02', 'i03']
+dimensions_to_run = ['d02', 'd10', 'd40']
+repetitions_per_instance = 5
+
+
 for p in suite:
-    
-    print(p.id)
-    
-    if not ('i01' in p.id or
-            'i02' in p.id or
-            'i03' in p.id):
+
+    func_id = p.id.split('_')[1]   # e.g., 'f002'
+    instance_id = p.id.split('_')[2] # e.g., 'i01'
+    dim_id = p.id.split('_')[3]      # e.g., 'd02'
+
+
+    if func_id not in functions_to_run:
         continue
-    if not ('d02' in p.id or
-            'd10' in p.id or
-            'd40' in p.id):
+    if instance_id not in instances_to_run:
         continue
-#    if not ('f006' in p.id):
-        print('Skipped')
+    if dim_id not in dimensions_to_run:
         continue
     
+    print(f"Running problem {p.id}")
     print(f"{p.index}) {p.id}:", file=f_gen)
     print("\t Started", file=f_gen)
     
@@ -108,7 +118,7 @@ for p in suite:
     tic = time.time()
     
     # Perform 30 repetitions
-    for i, seed in enumerate(seeds):
+    for i, seed in enumerate(seeds[:repetitions_per_instance]):
         # Optimization start
         
         # Check if seed is already evaluated
@@ -136,7 +146,7 @@ for p in suite:
         history = []
         batch_size = int(3 * p.dimension)
         n_init = int(3 * p.dimension)
-        n_iteration = int(30 * p.dimension)
+        n_iteration = int(10 * p.dimension)
         tr_number = 1
         iteration = 0
         n_samples = 0
@@ -229,6 +239,7 @@ for p in suite:
             
             history = FuRBO_status.history
             iteration = FuRBO_status.it_counter
+            print(f"iteration is {iteration}")
             n_samples = FuRBO_status.samples_evaluated
         
         filename_torch = p.id + '_it_' + str(i) + '.torch'

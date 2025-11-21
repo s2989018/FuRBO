@@ -10,118 +10,97 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib import patches
 
-def plot_convergence(crv, ax):
-    
+def plot_convergence(crv_base, ax, seeds=[1, 2, 3]):
+    """
+    Plot convergence curves for FuRBO and SCBO.
+    Handles missing files gracefully.
+    """
+    # Initialize data
+    y_F = np.empty((0, 0))
+    y_S = np.empty((0, 0))
+    y_f_max = -np.inf
+    y_s_max = -np.inf
+
+    ##########
+    # FuRBO data
     cwd = os.path.join(os.getcwd(), 'Experiments', 'FuRBO')
-    
-    # Load data
-    crv = crv[:-5] + '1' + crv[-4:]
-    if crv in os.listdir(cwd):
+
+    for seed in seeds:
+        crv = crv_base[:-5] + str(seed) + crv_base[-4:]
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        y_F = np.load(file_name) - fmin[crv]
-        y_f_max = np.amax(y_F)
-        y_F[y_F==np.amax(y_F)] = y_f_max
-        
-    crv = crv[:-5] + '2' + crv[-4:]
-    if crv in os.listdir(cwd):
-        file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        tmp = np.load(file_name) - fmin[crv]
-        if y_f_max < np.amax(tmp):
-            y_f_max = np.amax(tmp)
-            y_F[y_F==np.amax(y_F)] = y_f_max
+        if os.path.isfile(file_name):
+            data = np.load(file_name) - fmin.get(crv_base, 0)
+            if y_F.size == 0:
+                y_F = data
+            else:
+                y_F = np.vstack([y_F, data])
+            y_f_max = max(y_f_max, np.amax(data))
         else:
-            tmp[tmp==np.amax(tmp)] = y_f_max
-        y_F = np.vstack([y_F, tmp])
-        
-    crv = crv[:-5] + '3' + crv[-4:]
-    if crv in os.listdir(cwd):
-        file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        tmp = np.load(file_name) - fmin[crv]
-        if y_f_max < np.amax(tmp):
-            y_f_max = np.amax(tmp)
-            y_F[y_F==np.amax(y_F)] = y_f_max
-        else:
-            tmp[tmp==np.amax(tmp)] = y_f_max
-        y_F = np.vstack([y_F, tmp])
-        
-        
+            print(f"Warning: FuRBO file {file_name} not found")
+
+    ##########
+    # SCBO data
     cwd = os.path.join(os.getcwd(), 'Experiments', 'SCBO')
-    
-    # Load data
-    crv = crv[:-5] + '1' + crv[-4:]
-    if crv in os.listdir(cwd):
+
+    for seed in seeds:
+        crv = crv_base[:-5] + str(seed) + crv_base[-4:]
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        y_S = np.load(file_name) - fmin[crv]
-        y_s_max = np.amax(y_S)
-        y_S[y_S==np.amax(y_S)] = y_s_max
-        
-    crv = crv[:-5] + '2' + crv[-4:]
-    if crv in os.listdir(cwd):
-        file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        tmp = np.load(file_name) - fmin[crv]
-        if y_s_max < np.amax(tmp):
-            y_s_max = np.amax(tmp)
-            y_S[y_S==np.amax(y_S)] = y_s_max
+        if os.path.isfile(file_name):
+            data = np.load(file_name) - fmin.get(crv_base, 0)
+            if y_S.size == 0:
+                y_S = data
+            else:
+                y_S = np.vstack([y_S, data])
+            y_s_max = max(y_s_max, np.amax(data))
         else:
-            tmp[tmp==np.amax(tmp)] = y_s_max
-        y_S = np.vstack([y_S, tmp])
-        
-    crv = crv[:-5] + '3' + crv[-4:]
-    if crv in os.listdir(cwd):
-        file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
-        tmp = np.load(file_name) - fmin[crv]
-        if y_s_max < np.amax(tmp):
-            y_s_max = np.amax(tmp)
-            y_S[y_S==np.amax(y_S)] = y_s_max
-        else:
-            tmp[tmp==np.amax(tmp)] = y_s_max
-        y_S = np.vstack([y_S, tmp])
-    
-    # Find worst feasible
-    y_max = np.amax([y_f_max, y_s_max])
-    
-    # Exchange worst feasible
-    y_F[y_F==np.amax(y_F)] = y_max
-    y_S[y_S==np.amax(y_S)] = y_max
-        
-    # Elaborate FuRBO data
-    mean = np.mean(y_F, axis = 0)
-    lb = mean - np.std(y_F, axis = 0)/np.sqrt(y_F.shape[0])
-    ub = mean + np.std(y_F, axis = 0)/np.sqrt(y_F.shape[0])
-    x = np.linspace(1, len(mean), len(mean))
-    
-    # Plot convergence of FuRBO
-    ax.plot(x, mean, color = 'darkorange', lw=2)
-    ax.fill_between(x, lb, ub, alpha = 0.2, color='darkorange', lw=2)
-    top = np.amax(ub) + 0.1 * np.amax(ub)
-    middle = np.amax(mean)/2
-        
-    # Elaborate SCBO data
-    mean = np.mean(y_S, axis = 0)
-    lb = mean - np.std(y_S, axis = 0)/np.sqrt(y_S.shape[0])
-    ub = mean + np.std(y_S, axis = 0)/np.sqrt(y_S.shape[0])
-    x = np.linspace(1, len(mean), len(mean))
-    
-    # Plot convergence of SCBO
-    ax.plot(x, mean, color = 'darkgreen', lw=2)
-    ax.fill_between(x, lb, ub, alpha = 0.2, color='darkgreen', lw=2)
-    if np.amax(ub) + 0.1 * np.amax(ub) > top:
-        top = np.amax(ub) + 0.1 * np.amax(ub)
-    if np.amax(mean)/2 > middle:
-        middle = np.amax(mean)/2
-        
-    ax.set_ylim(bottom = 0,
-                top = top)
-    
-    ax.set_yticks([top,
-                   middle,
-                   0])
-    
-    ax.set_yticklabels([f"{(top):.1E}",
-                        f"{(middle):.1E}",
-                        "0.0"], rotation=45)
-        
+            print(f"Warning: SCBO file {file_name} not found")
+
+    ##########
+    # Find worst feasible for plotting
+    y_max = max(y_f_max, y_s_max)
+
+    # Replace absolute maxima with y_max (if data exists)
+    if y_F.size > 0:
+        y_F[y_F == np.amax(y_F)] = y_max
+    if y_S.size > 0:
+        y_S[y_S == np.amax(y_S)] = y_max
+
+    ##########
+    # Plot FuRBO
+    top, middle = 0, 0
+    if y_F.size > 0:
+        mean = np.mean(y_F, axis=0)
+        lb = mean - np.std(y_F, axis=0) / np.sqrt(y_F.shape[0])
+        ub = mean + np.std(y_F, axis=0) / np.sqrt(y_F.shape[0])
+        x = np.arange(1, len(mean)+1)
+        ax.plot(x, mean, color='darkorange', lw=2, label='FuRBO')
+        ax.fill_between(x, lb, ub, alpha=0.2, color='darkorange', lw=2)
+        top = max(top, np.amax(ub) + 0.1*np.amax(ub))
+        middle = max(middle, np.amax(mean)/2)
+
+    ##########
+    # Plot SCBO
+    if y_S.size > 0:
+        mean = np.mean(y_S, axis=0)
+        lb = mean - np.std(y_S, axis=0) / np.sqrt(y_S.shape[0])
+        ub = mean + np.std(y_S, axis=0) / np.sqrt(y_S.shape[0])
+        x = np.arange(1, len(mean)+1)
+        ax.plot(x, mean, color='darkgreen', lw=2, label='SCBO')
+        ax.fill_between(x, lb, ub, alpha=0.2, color='darkgreen', lw=2)
+        top = max(top, np.amax(ub) + 0.1*np.amax(ub))
+        middle = max(middle, np.amax(mean)/2)
+
+    ##########
+    # Configure y-axis
+    ax.set_ylim(bottom=0, top=top)
+    ax.set_yticks([top, middle, 0])
+    ax.set_yticklabels([f"{top:.1E}", f"{middle:.1E}", "0.0"], rotation=45)
+
+    # Optional: legend
+    ax.legend()
+
     return
+
 
 ##########
 # Initialize plot
