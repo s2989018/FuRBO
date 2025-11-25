@@ -1,6 +1,3 @@
-# Full code for modified FuRBO (iteration / restart logic matched to original main.py)
-#
-# March 2024 (modified version, iteration logic aligned with original main.py)
 ##########
 # Imports
 import cocoex  # experimentation module
@@ -33,12 +30,14 @@ from botorch.models.model_list_gp_regression import ModelListGP
 from botorch.models.transforms.outcome import Standardize
 from botorch.test_functions import Ackley
 from botorch.utils.transforms import unnormalize
+
 from botorch.sampling.qmc import NormalQMCEngine
 
 ###
 # Custom imports
 import constraints
-from FuRBOSamplingStrategies import get_initial_points_rotated_TR as get_initial_points
+from FuRBOSamplingStrategies import get_initial_points_sobol as get_initial_points
+# from FuRBOSamplingStrategies import get_initial_points_rotated_TR as get_initial_points
 from FuRBOSamplingStrategies import generate_batch_thompson_sampling_rotated_TR as generate_batch
 from FuRBOStates import variant_one
 from FuRBOStopping import max_evaluations as stopping_criterion
@@ -46,9 +45,9 @@ from FuRBOTrustUpdate import multinormal_radius as update_tr
 from FuRBORestart import min_radius as restart_criterion
 import objectives
 import plotting
+from visual import plot_TRs
 
-##########
-# Main code    
+
 
 # Define COCO input
 suite_name = "bbob-constrained"
@@ -71,11 +70,16 @@ repetitions_per_instance = 5
 
 for p in suite:
 
-    func_id = p.id.split('_')[1]   # e.g., 'f002'
-    instance_id = p.id.split('_')[2] # e.g., 'i01'
-    dim_id = p.id.split('_')[3]      # e.g., 'd02'
+    func_id = p.id.split('_')[1]   
+    instance_id = p.id.split('_')[2] 
+    dim_id = p.id.split('_')[3]    
 
-    if func_id not in functions_to_run or instance_id not in instances_to_run or dim_id not in dimensions_to_run:
+
+    if func_id not in functions_to_run:
+        continue
+    if instance_id not in instances_to_run:
+        continue
+    if dim_id not in dimensions_to_run:
         continue
 
     print(f"Running problem {p.id}")
@@ -84,6 +88,7 @@ for p in suite:
 
     # Create directory for problem
     cwd_current = os.path.join(cwd_base, p.id)
+    print(cwd_current)
     if not os.path.exists(cwd_current):
         os.mkdir(cwd_current)
 
@@ -106,8 +111,8 @@ for p in suite:
     # Perform repetitions
     for i, seed in enumerate(seeds[:repetitions_per_instance]):
 
-        filename_torch = p.id + '_it_' + str(i) + '.torch'
-        if os.path.exists(os.path.join(cwd_current, filename_torch)):
+        # Check if seed is already evaluated
+        if p.id + '_it_' + str(i) + '.torch' in os.listdir(os.path.join(cwd_base, p.id)):
             continue
 
         seed_j = 0
@@ -120,13 +125,13 @@ for p in suite:
         dtype = torch.double
         tkwargs = {"device": device, "dtype": dtype}
 
-        # Initialize FuRBO parameters (match original)
+        # Initialize FuRBO
         history = []
         iteration = 0
         n_samples = 0
 
 
-        # FuRBO state initialization (first init)
+        # FuRBO state initialization
         FuRBO_status = variant_one(
             obj=p,
             cons=p.constraint,
@@ -142,7 +147,6 @@ for p in suite:
         )
         global_iter = 0
 
-        # === Main restart/iteration loop (matches original logic) ===
         while not FuRBO_status.finish_trigger:
 
             if FuRBO_status.restart_trigger:
@@ -150,7 +154,7 @@ for p in suite:
                 FuRBO_seed = int(seed[seed_j])
                 torch.manual_seed(FuRBO_seed)
 
-            # Reinitialize FuRBO status for a restart (this mirrors the original main.py pattern)
+             # FuRBO state initialization
             FuRBO_status = variant_one(
                 obj=p,
                 cons=p.constraint,
@@ -166,10 +170,10 @@ for p in suite:
             )
   
 
-            # generate initial batch (Sobol or rotated TR version)
+            # generate initial batch of X
             X_next = get_initial_points(FuRBO_status, **tkwargs)
 
-            # Optimization loop within current initialized state (until restart or finish)
+            # Optimization loop 
             while not FuRBO_status.restart_trigger and not FuRBO_status.finish_trigger:
                 
                 # Evaluate batch
@@ -181,68 +185,48 @@ for p in suite:
                 Y_next = torch.tensor(Y_next).unsqueeze(-1)
                 C_next = torch.tensor(C_next)
 
-                # print(f"[DEBUG] Raw batch Y_next: {Y_next.squeeze().cpu().numpy()}")
-                # print(f"[DEBUG] Raw batch C_next: {C_next.cpu().numpy()}")
 
-                # Update FuRBO status with evaluated batch
+                # Update FuRBO status with newly evaluated batch
                 FuRBO_status.update(X_next, Y_next, C_next, **tkwargs)
-                print( FuRBO_status.samples_evaluated)
+
                 global_iter += 1
-                # ADD DEBUG HERE
+     
                 print(
                     f"[ITER {global_iter}] Best_Y: {FuRBO_status.best_Y}, "
                 )
 
-                # ----- Global best evaluation across all TRs -----
-                # keep your original print/log logic but use FuRBO_status aggregated fields
-                try:
-                    # Many variants of FuRBO store per-TR bests differently; use safe access
-                    if hasattr(FuRBO_status, 'best_C') and hasattr(FuRBO_status, 'best_Y'):
-                        if (FuRBO_status.best_C <= 0).all():
-                            best = FuRBO_status.best_Y.amax()
-                            print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                            print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}")
-                        else:
-                            violation = FuRBO_status.best_C.clamp(min=0).sum()
-                            print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: "
-                                  f"{violation:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                            print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: "
-                                  f"{violation:.2e}, MG radius: {FuRBO_status.radius}")
-                    else:
-                        # Fallback to aggregated per-TR bests stored in FuRBO_status.tr_best_Y / tr_best_C if present
-                        best_Y_list = [y for y in getattr(FuRBO_status, 'tr_best_Y', []) if y is not None]
-                        best_C_list = [c for c in getattr(FuRBO_status, 'tr_best_C', []) if c is not None]
-                        if best_Y_list:
-                            feasible_idx = [ii for ii, c in enumerate(best_C_list) if (c <= 0).all()]
-                            if feasible_idx:
-                                best_global_Y = max([best_Y_list[ii] for ii in feasible_idx])
-                                print(f"{FuRBO_status.it_counter-1}) Best feasible value: {best_global_Y:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                                print(f"{FuRBO_status.it_counter-1}) Best feasible value: {best_global_Y:.2e}, MG radius: {FuRBO_status.radius}")
-                            else:
-                                best_global_Y = max(best_Y_list)
-                                print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Best (infeasible) value: {best_global_Y:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                                print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Best (infeasible) value: {best_global_Y:.2e}, MG radius: {FuRBO_status.radius}")
-                except Exception:
-                    # Avoid breaking if status doesn't have attributes; continue
-                    pass
+                # Print best value so far and violation
+                if (FuRBO_status.best_C <= 0).all():
+                    best = FuRBO_status.best_Y.amax()
+                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}", file=f)
+                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}")
+                else:
+                    violation = FuRBO_status.best_C.clamp(min=0).sum()
+                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}, MG radius: {FuRBO_status.radius}", file=f)
+                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}, MG radius: {FuRBO_status.radius}")
 
-                # Optional: print current batch results
-                # print(f"Y batch: {Y_next}")
-                # print(f"C batch: {C_next}")
 
                 # Update Trust regions
                 FuRBO_status = update_tr(FuRBO_status, **tkwargs)
 
-                # Generate new batch
+                # # Optional: 2D/3D plot of TRs
+                # try:
+                #     plot_TRs(FuRBO_status)   # <-- call your visual function here
+                # except Exception as e:
+                #     print("[WARNING] TR plot failed:", e)
+
+                                
+
+                # Evaluate new batch
+                # generate intial batch of X
                 X_next = generate_batch(FuRBO_status, N_CANDIDATES, **tkwargs)
 
-                # Update stopping/restart triggers (exact same calls as original)
+                # Update stopping criterion
                 FuRBO_status.finish_trigger = stopping_criterion(FuRBO_status)
                 FuRBO_status.restart_trigger = restart_criterion(FuRBO_status)
 
 
 
-            # After inner loop (either restart or finish), persist history and counters like original
             history = FuRBO_status.history
             iteration = FuRBO_status.it_counter
             print(f"the iteration is : {iteration}")
@@ -254,41 +238,41 @@ for p in suite:
         f"(max allowed = {n_iteration}), samples = {n_samples}",
         file=f
         )
-        # Save history (same filename convention)
+        # Save history 
+        filename_torch = p.id + '_it_' + str(i) + '.torch'
         torch.save(FuRBO_status.history, os.path.join(cwd_current, filename_torch))
+
         t = (time.time() - tic) % 60
         print(f"{time.strftime('%x - %X')}: Finish", file=f)
         print(f"Computation time: {t:.2f} seconds", file=f)
         print(f"\t Completed - time: {t:.2f} seconds", file=f_gen)
         del FuRBO_status
 
-    # ----- Post-processing (aligned with original main.py) -----
-
+    # Post-processing
+    # Read all repetitions
     states = []
     for torch_file in os.listdir(cwd_current):
-        if torch_file.endswith('.torch'):
-            full_path = os.path.join(cwd_current, torch_file)
-            obj = torch.load(full_path, map_location="cpu")
-            states.append(obj)   # store history (list of events)
-
+        if 'torch' in torch_file:
+            states.append(torch.load(os.path.join(cwd_current, torch_file), map_location=torch.device('cpu')))
+      
+    # Extract best at each iteration
     Y_batch = []
     C_batch = []
-
-    for r, state in enumerate(states):
+    for state in states:
         Y_batch.append(np.concatenate([-1 * event['batch']['Y'].cpu().numpy() for event in state]).reshape(-1)[:n_iteration])
         C_batch.append(np.concatenate([np.max(event['batch']['C'].cpu().numpy(), axis=1) for event in state])[:n_iteration])
-            
-        # print(f"[DEBUG] Repetition {r}: Last 10 Ys before truncation/padding: {Y_batch[-10:]}")
-        # print(f"[DEBUG] Repetition {r}: Last 10 Cs before truncation/padding: {C_batch[-10:]}")
 
+    # Create a monotonic curve        
     Y_best = np.array(Y_batch)
+    Y_best = Y_best.reshape(Y_best.shape[0], Y_best.shape[1])
     C_best = np.array(C_batch)
+    C_best = C_best.reshape(C_best.shape[0], C_best.shape[1])
 
     Y_f = np.copy(Y_best)
     C_f = np.copy(C_best)
-
     Y_f[np.where(C_f > 0)[0], np.where(C_f > 0)[1]] = 0
     Y_f[np.where(C_f > 0)[0], np.where(C_f > 0)[1]] = np.amax(Y_f)
+
 
     Y_f_monotonic = []
     for YY in Y_f:
@@ -307,10 +291,10 @@ for p in suite:
     Y_f_monotonic = np.array(Y_f_monotonic)
     
 
-    # Save results same filenames as original
+    # Save interesting curves
     np.save(os.path.join(cwd_current, '01_Y_mono.npy'), Y_f_monotonic)
     np.save(os.path.join(cwd_current, '02_Y_best.npy'), Y_best)
     np.save(os.path.join(cwd_current, '02_C_best.npy'), C_best)
 
-    # Mark complete
+    # Flag as complete
     open(os.path.join(cwd_current, 'complete'), 'w').close()
