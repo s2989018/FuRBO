@@ -1,0 +1,32 @@
+bbob-constrained_f052_i02_d10
+11/27/25 - 12:22:27: Start
+0) No feasible point yet! Smallest total violation: 4.31e+04, MG radius: 1.0
+1) No feasible point yet! Smallest total violation: 4.88e+03, MG radius: 1.0
+2) Best value: -1.82e+03, MG radius: 1.0
+3) Best value: -1.82e+03, MG radius: 1.0
+11/27/25 - 12:22:55: Finish
+Computation time: 28.04 seconds
+0) No feasible point yet! Smallest total violation: 7.13e+03, MG radius: 1.0
+1) No feasible point yet! Smallest total violation: 3.16e+03, MG radius: 1.0
+2) Best value: -1.97e+03, MG radius: 1.0
+3) Best value: -1.54e+03, MG radius: 1.0
+11/27/25 - 12:23:27: Finish
+Computation time: 0.53 seconds
+0) No feasible point yet! Smallest total violation: 4.42e+04, MG radius: 1.0
+1) No feasible point yet! Smallest total violation: 3.91e+03, MG radius: 1.0
+2) No feasible point yet! Smallest total violation: 1.82e+03, MG radius: 1.0
+3) Best value: -1.72e+03, MG radius: 1.0
+11/27/25 - 12:23:48: Finish
+Computation time: 21.24 seconds
+0) No feasible point yet! Smallest total violation: 3.77e+04, MG radius: 1.0
+1) No feasible point yet! Smallest total violation: 7.81e+03, MG radius: 1.0
+2) No feasible point yet! Smallest total violation: 1.24e+01, MG radius: 1.0
+3) Best value: -1.55e+03, MG radius: 1.0
+11/27/25 - 12:24:13: Finish
+Computation time: 46.60 seconds
+0) No feasible point yet! Smallest total violation: 4.49e+04, MG radius: 1.0
+1) No feasible point yet! Smallest total violation: 4.76e+03, MG radius: 1.0
+2) No feasible point yet! Smallest total violation: 1.75e+02, MG radius: 1.0
+3) Best value: -2.09e+03, MG radius: 1.0
+11/27/25 - 12:24:40: Finish
+Computation time: 13.36 seconds

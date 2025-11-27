@@ -71,10 +71,9 @@ os.makedirs(cwd_base, exist_ok=True)
 # General log file
 f_gen = open(os.path.join(cwd_base, '00_GeneralLog.txt'), 'w')
 
-# functions_to_run = ['f002', 'f004', 'f006', 'f050', 'f052', 'f054']
-functions_to_run = ['f002']
+functions_to_run = ['f002', 'f004', 'f006', 'f050', 'f052', 'f054']
 instances_to_run = ['i01', 'i02', 'i03']
-dimensions_to_run = ['d02', 'd10', 'd40']
+dimensions_to_run = ['d10']
 repetitions_per_instance = 5
 
 
@@ -204,9 +203,6 @@ for p in suite:
                 Y_next = torch.tensor(Y_next).unsqueeze(-1)
                 C_next = torch.tensor(C_next)
                 
-                # print(X_next)
-                # print(Y_next)
-                
                 # Update FuRBO status with newly evaluated batch
                 FuRBO_status.update(X_next, Y_next, C_next, **tkwargs)   
                 
@@ -239,7 +235,6 @@ for p in suite:
             
             history = FuRBO_status.history
             iteration = FuRBO_status.it_counter
-            print(f"iteration is {iteration}")
             n_samples = FuRBO_status.samples_evaluated
         
         filename_torch = p.id + '_it_' + str(i) + '.torch'

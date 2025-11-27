@@ -13,23 +13,17 @@ from matplotlib import patches
 def plot_convergence(crv, ax):
     
     cwd = os.path.join(os.getcwd(), 'Experiments', 'FuRBO')
-
-    print(cwd)
     
     # Load data
     crv = crv[:-5] + '1' + crv[-4:]
-    print("CRV:", crv)
     if crv in os.listdir(cwd):
-        print("INIT")
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         y_F = np.load(file_name) - fmin[crv]
         y_f_max = np.amax(y_F)
         y_F[y_F==np.amax(y_F)] = y_f_max
         
     crv = crv[:-5] + '2' + crv[-4:]
-    print("CRV:", crv)
     if crv in os.listdir(cwd):
-        print("INIT")
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         tmp = np.load(file_name) - fmin[crv]
         if y_f_max < np.amax(tmp):
@@ -40,9 +34,7 @@ def plot_convergence(crv, ax):
         y_F = np.vstack([y_F, tmp])
         
     crv = crv[:-5] + '3' + crv[-4:]
-    print("CRV:", crv)
     if crv in os.listdir(cwd):
-        print("INIT")
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         tmp = np.load(file_name) - fmin[crv]
         if y_f_max < np.amax(tmp):
@@ -58,7 +50,6 @@ def plot_convergence(crv, ax):
     # Load data
     crv = crv[:-5] + '1' + crv[-4:]
     if crv in os.listdir(cwd):
-        print("CRV:", crv)
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         y_S = np.load(file_name) - fmin[crv]
         y_s_max = np.amax(y_S)
@@ -66,7 +57,6 @@ def plot_convergence(crv, ax):
         
     crv = crv[:-5] + '2' + crv[-4:]
     if crv in os.listdir(cwd):
-        print("CRV:", crv)
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         tmp = np.load(file_name) - fmin[crv]
         if y_s_max < np.amax(tmp):
@@ -78,7 +68,6 @@ def plot_convergence(crv, ax):
         
     crv = crv[:-5] + '3' + crv[-4:]
     if crv in os.listdir(cwd):
-        print("CRV:", crv)
         file_name = os.path.join(cwd, crv, '01_Y_mono.npy')
         tmp = np.load(file_name) - fmin[crv]
         if y_s_max < np.amax(tmp):
@@ -140,13 +129,14 @@ matplotlib.use('Agg')
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
-fig = plt.figure(figsize=(16,16))
-gs = gridspec.GridSpec(nrows=11,
+fig = plt.figure(figsize=(16,8))
+gs = gridspec.GridSpec(nrows=3,
                        ncols=6,
-                       wspace=.35,
-                       hspace=.5,
-                       height_ratios=[1, 8, 8, 8, 8, 8, 8, 8, 8, 8, 1],
+                       wspace=.4,
+                       hspace=.4,
+                       height_ratios=[0.5, 8, 8],
                        figure = fig)
+
 
 patchList = []
 
@@ -159,7 +149,7 @@ fmin = fmin.item(0)
 crv = "bbob-constrained_f002_i01_d10"
 ax = plt.subplot(gs[1, 1])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
+ax.set_xticks([0, 50, 100, 150])
 ax.set_xticklabels([])
 ax.set_title("Constraints: 3\n"
              "Active: 2")
@@ -169,7 +159,7 @@ ax.set_title("Constraints: 3\n"
 crv = "bbob-constrained_f004_i01_d10"
 ax = plt.subplot(gs[1, 3])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
+ax.set_xticks([0, 50, 100, 150])
 ax.set_xticklabels([])
 ax.set_title("Constraints: 17\n"
              "Active: 11")
@@ -178,58 +168,43 @@ ax.set_title("Constraints: 17\n"
 crv = "bbob-constrained_f006_i01_d10"
 ax = plt.subplot(gs[1, 5])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
+ax.set_xticks([0, 50, 100, 150])
 ax.set_xticklabels([])
 ax.set_title("Constraints: 54\n"
              "Active: 36")
 
 crv = "bbob-constrained_f050_i01_d10"
-ax = plt.subplot(gs[9, 1])
+ax = plt.subplot(gs[2, 1])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
-ax.set_xticklabels(['0', '50', '100', '150', '200', '250', '300'], rotation=45)
-# ax.set_xlabel('Evaluations')
+ax.set_xticks([0, 50, 100, 150])
+ax.set_xticklabels(['0', '50', '100', '150'], rotation=45)
+ax.set_xlabel('Evaluations')
 
 
 crv = "bbob-constrained_f052_i01_d10"
-ax = plt.subplot(gs[9, 3])
+ax = plt.subplot(gs[2, 3])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
-ax.set_xticklabels(['0', '50', '100', '150', '200', '250', '300'], rotation=45)
-# ax.set_xlabel('uations', loc = 'left')
+ax.set_xticks([0, 50, 100, 150])
+ax.set_xticklabels(['0', '50', '100', '150'], rotation=45)
+ax.set_xlabel('Evaluations', loc = 'left')
 
 
 crv = "bbob-constrained_f054_i01_d10"
-ax = plt.subplot(gs[9, 5])
+ax = plt.subplot(gs[2, 5])
 plot_convergence(crv, ax)
-ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
-ax.set_xticklabels(['0', '50', '100', '150', '200', '250', '300'], rotation=45)
-# ax.set_xlabel('Evaluations')
+ax.set_xticks([0, 50, 100, 150])
+ax.set_xticklabels(['0', '50', '100', '150'], rotation=45)
+ax.set_xlabel('Evaluations')
 
 # Add legend
 ax = plt.subplot(gs[0, :])
 patchList = [patches.Patch(color='darkorange', label='FuRBO'),
              patches.Patch(color='darkgreen', label='novel_FuRBO')]
-ax.legend(ncols = 2,
-          handles=patchList, 
-          loc='lower center')
-ax.spines[['right', 'bottom', 'left', 'top']].set_visible(False) 
-ax.set_xticks([])
-ax.set_yticks([])   
+ax.legend(ncols=2, handles=patchList, loc='center')
+ax.axis('off')  # hide axes for legend
 
-ax = plt.subplot(gs[10, :])
-ax.set_xlabel('Evaluations')
-ax.spines[['right', 'bottom', 'left', 'top']].set_visible(False) 
-ax.set_xticks([])
-ax.set_yticks([])  
-    
-# Add plot description
-# ax.set_title(str(dir_)) 
-# ax.legend(handles=patchList, loc='upper right')
-# ax.set_xlabel('Evaluations')
-# ax.set_ylabel('Loss')
-# ax.set_ylim(bottom = 0)
-    
+
+
 # Save figure
 fig.savefig(os.path.join(os.getcwd(), 'FuRBOtenDim' + '.png'), dpi=600)
     
