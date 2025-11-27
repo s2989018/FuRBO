@@ -77,7 +77,6 @@ def generate_batch_thompson_sampling_rotated_TR(state, n_candidates, **tkwargs):
 
         # Create a perturbation mask
         prob_perturb = min(20.0 / state.dim, 0.5)
-        print(prob_perturb)
         mask = torch.rand(n_candidates, state.dim, **tkwargs) <= prob_perturb
         ind = torch.where(mask.sum(dim=1) == 0)[0]
 

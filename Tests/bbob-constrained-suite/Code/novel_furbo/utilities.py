@@ -108,55 +108,52 @@ def no_scaling(y):
     
     return y
 
-def multivariate_circular(centre,
-                          radius,
-                          n_samples,
-                          lb = None,
-                          ub = None,
-                          **tkwargs):
-    
-    dim = centre.shape[0]
-    
-    # Generate a multivariate normal distribution centered at 0
-    multivariate_normal = torch.distributions.multivariate_normal.MultivariateNormal(torch.zeros(dim, **tkwargs), 0.025*torch.eye(dim, **tkwargs))
-    
-    #  Draw samples torch.distributions.multivariate_normal import MultivariateNormal
-    samples = multivariate_normal.sample(sample_shape=torch.Size([n_samples]))
-    
-    # Normalize each sample to have unit norm, then scale by the radius
-    norms = torch.norm(samples, dim=1, keepdim=True)  # Euclidean norms
-    normalized_samples = samples / norms  # Normalize to unit hypersphere
-    scaled_samples = normalized_samples * torch.rand(n_samples, 1, **tkwargs) * radius  # Scale by random factor within radius
-    
-    # Translate samples to be centered at centre
-    samples = scaled_samples + centre
-    
-    
-    # Trim samples outside domain
-    for dim in range(len(lb)):
-        samples = samples[torch.where(samples[:,dim]>=lb[dim])]
-        samples = samples[torch.where(samples[:,dim]<=ub[dim])]
-    
+
+# Fits a SingleTaskGP with a Matern kernel
+def get_fitted_model(X: Tensor, Y: Tensor, dim: int, max_cholesky_size=float("inf")) -> SingleTaskGP:
+
+    likelihood = GaussianLikelihood(noise_constraint=Interval(1e-8, 1e-3))
+    covar_module = ScaleKernel(
+        MaternKernel(nu=2.5, ard_num_dims=dim, lengthscale_constraint=Interval(0.005, 4.0))
+    )
+    model = SingleTaskGP(
+        X,
+        Y,
+        covar_module=covar_module,
+        likelihood=likelihood,
+        outcome_transform=Standardize(m=1),
+    )
+    mll = ExactMarginalLogLikelihood(model.likelihood, model)
+
+    with gpytorch.settings.max_cholesky_size(max_cholesky_size):
+        fit_gpytorch_mll(mll, optimizer_kwargs={'method': 'L-BFGS-B'})
+
+    return model
+
+# Sample uniformly from inside an ellipsoid
+def multivariate_ellipsoid(center, radii, R, n_samples, lb, ub, **tkwargs):
+
+    d = center.shape[0]
+    device = center.device
+    dtype = center.dtype
+
+    # Generate random directions
+    normal = torch.randn(n_samples, d, device=device, dtype=dtype)
+    normal /= torch.norm(normal, dim=1, keepdim=True)
+
+    # Random length in [0, 1]
+    lengths = torch.rand(n_samples, 1, device=device, dtype=dtype)
+
+    scaled = normal * lengths * radii  
+
+    # Rotate into ellipsoid coordinates
+    rotated = scaled @ R.T  
+
+    # Shift to center
+    samples = rotated + center
+
+    # Clamp the values within bounds
+    if lb is not None:
+        samples = torch.clamp(samples, lb, ub)
+
     return samples
-
-def multivariate_circular_two(centre,
-                          radius,
-                          n_samples,
-                          lb = None,
-                          ub = None,
-                          **tkwargs):
-    
-    dim = centre.shape[0]
-    
-    # Generate a multivariate normal distribution centered at 0
-    multivariate_normal = torch.distributions.multivariate_normal.MultivariateNormal(centre, radius*0.025*torch.eye(dim, **tkwargs))
-
-    # Draw samples torch.distributions.multivariate_normal import MultivariateNormal
-    samples = multivariate_normal.sample(sample_shape=torch.Size([n_samples]))
-    
-    for dim in range(len(lb)):
-        samples = samples[torch.where(samples[:,dim]>=lb[dim])]
-        samples = samples[torch.where(samples[:,dim]<=ub[dim])]
-    
-    return samples
-

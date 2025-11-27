@@ -63,8 +63,8 @@ os.makedirs(cwd_base, exist_ok=True)
 # General log file
 f_gen = open(os.path.join(cwd_base, '00_GeneralLog.txt'), 'w')
 
-functions_to_run = ['f002']
-instances_to_run = ['i01']
+functions_to_run = ['f002', 'f004', 'f006', 'f050', 'f052', 'f054']
+instances_to_run = ['i01', 'i02', 'i03']
 dimensions_to_run = ['d10']
 repetitions_per_instance = 5
 
@@ -88,7 +88,7 @@ for p in suite:
 
     # Create directory for problem
     cwd_current = os.path.join(cwd_base, p.id)
-    print(cwd_current)
+
     if not os.path.exists(cwd_current):
         os.mkdir(cwd_current)
 
@@ -198,27 +198,24 @@ for p in suite:
                 # Print best value so far and violation
                 if (FuRBO_status.best_C <= 0).all():
                     best = FuRBO_status.best_Y.amax()
-                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}, MG radius: {FuRBO_status.radius}")
+                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}", file=f)
+                    print(f"{FuRBO_status.it_counter-1}) Best value: {best:.2e}")
                 else:
                     violation = FuRBO_status.best_C.clamp(min=0).sum()
-                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}, MG radius: {FuRBO_status.radius}", file=f)
-                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}, MG radius: {FuRBO_status.radius}")
+                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}", file=f)
+                    print(f"{FuRBO_status.it_counter-1}) No feasible point yet! Smallest total violation: {violation:.2e}")
 
 
                 # Update Trust regions
                 FuRBO_status = update_tr(FuRBO_status, **tkwargs)
 
-                # # Optional: 2D/3D plot of TRs
+                # # 2D/3D plot of TRs
                 # try:
                 #     plot_TRs(FuRBO_status)   # <-- call your visual function here
                 # except Exception as e:
-                #     print("[WARNING] TR plot failed:", e)
+                #     print("[WARNING] TR plot failed:", e)    
 
-                                
-
-                # Evaluate new batch
-                # generate intial batch of X
+                # generate (initial) batch of X
                 X_next = generate_batch(FuRBO_status, N_CANDIDATES, **tkwargs)
 
                 # Update stopping criterion
@@ -226,12 +223,10 @@ for p in suite:
                 FuRBO_status.restart_trigger = restart_criterion(FuRBO_status)
 
 
-
             history = FuRBO_status.history
             iteration = FuRBO_status.it_counter
-            print(f"the iteration is : {iteration}")
             n_samples = FuRBO_status.samples_evaluated
-            print(f"het aantal samples: {n_samples}")
+
 
         print(
         f"[DEBUG] Saving run {i}: Total history entries = {len(FuRBO_status.history)} "

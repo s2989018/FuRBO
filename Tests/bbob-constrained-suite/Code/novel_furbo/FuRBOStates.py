@@ -1,6 +1,3 @@
-# FuRBOStates.py
-# FuRBO state initiate for PCA-based multi-TR sampling
-
 from botorch.models.model_list_gp_regression import ModelListGP
 import torch
 from torch import Tensor
@@ -26,25 +23,19 @@ class variant_one():
         self.tr_number = tr_number
         self.radius = 1.0
         self.radius_min = 0.5**7
-        self.success_tolerance = 2
-        self.failure_tolerance = 3
 
         # Per-TR PCA-based information
-        self.tr_center = torch.zeros((tr_number, self.dim), **tkwargs)
-        self.tr_radii = torch.ones(tr_number, **tkwargs) * self.radius
+        self.tr_center = torch.zeros((tr_number, self.dim), **tkwargs) # Center of each TR
+        self.tr_radii = torch.ones(tr_number, **tkwargs) * self.radius # Radius for each TR
         id_mats = [torch.eye(self.dim, **tkwargs) for _ in range(tr_number)]
-        self.tr_R = torch.stack(id_mats, dim=0)  # Rotation matrices (tr_number x dim x dim)
+        self.tr_R = torch.stack(id_mats, dim=0)  # Rotation matrices for each TR
 
-        # Initialize TR centers with Sobol draws
-        try:
-            sobol_tmp = SobolEngine(dimension=self.dim, scramble=True, seed=seed)
-            self.tr_center = sobol_tmp.draw(tr_number).to(**tkwargs)
-        except Exception:
-            self.tr_center = torch.zeros((tr_number, self.dim), **tkwargs)
+        # Initialize per-TR local GP storage
+        self.local_Y_gps = [None for _ in range(self.tr_number)]
 
-        # Per-TR performance tracking
-        self.tr_success_counter = torch.zeros(tr_number, dtype=torch.int32)
-        self.tr_failure_counter = torch.zeros(tr_number, dtype=torch.int32)
+        sobol_tmp = SobolEngine(dimension=self.dim, scramble=True, seed=seed)
+        self.tr_center = sobol_tmp.draw(tr_number).to(**tkwargs)
+
 
         # Per-TR bests
         self.tr_best_X = [None for _ in range(tr_number)]
@@ -55,8 +46,6 @@ class variant_one():
         self.best_X = None
         self.best_Y = None
         self.best_C = None
-        self.success_counter = 0
-        self.failure_counter = 0
 
         # Iteration and stopping
         self.it_counter = iteration
@@ -131,19 +120,12 @@ class variant_one():
                 if (cand_C <= 0).all():
                     if (prev_C > 0).any() or (cand_Y > prev_Y).any():
                         self.tr_best_X[j], self.tr_best_Y[j], self.tr_best_C[j] = cand_X.clone(), cand_Y.clone(), cand_C.clone()
-                        self.tr_success_counter[j] += 1
-                        self.tr_failure_counter[j] = 0
-                    else:
-                        self.tr_failure_counter[j] += 1
+    
                 else:
                     total_violation_new = cand_C.clamp(min=0).sum()
                     total_violation_prev = prev_C.clamp(min=0).sum()
                     if total_violation_new < total_violation_prev:
                         self.tr_best_X[j], self.tr_best_Y[j], self.tr_best_C[j] = cand_X.clone(), cand_Y.clone(), cand_C.clone()
-                        self.tr_success_counter[j] += 1
-                        self.tr_failure_counter[j] = 0
-                    else:
-                        self.tr_failure_counter[j] += 1
 
             # Update global best from TR bests
             tr_best_pairs = [(float(self.tr_best_Y[j].item()), j) for j in range(self.tr_number) if self.tr_best_Y[j] is not None]
@@ -152,10 +134,8 @@ class variant_one():
                 self.best_X = self.tr_best_X[best_tr].clone()
                 self.best_Y = self.tr_best_Y[best_tr].clone()
                 self.best_C = self.tr_best_C[best_tr].clone()
-            self.success_counter = int(self.tr_success_counter.sum().item())
-            self.failure_counter = int(self.tr_failure_counter.sum().item())
-        else:
-            # Fallback: old single-best logic
+        else:    # Fallback: no per-TR bests available, use global best 
+    
             idx = best_global_index
             idx = min(max(idx, 0), self.X.shape[0]-1)
             cand_X, cand_Y, cand_C = self.X[idx], self.Y[idx], self.C[idx]
@@ -169,11 +149,9 @@ class variant_one():
                  'batch': {'X': self.batch_X, 'Y': self.batch_Y, 'C': self.batch_C},
                  'best': {'X': self.best_X, 'Y': self.best_Y, 'C': self.best_C},
                  'trust_region': {'tr_center': self.tr_center, 'tr_radii': self.tr_radii, 'tr_rotations': self.tr_R},
-                 'performance': {'n_success_per_tr': self.tr_success_counter.clone(), 'n_failures_per_tr': self.tr_failure_counter.clone()},
                  'seed': self.seed}
         self.history.append(event)
 
         # Update counters
         self.it_counter += 1
         self.samples_evaluated += len(Y_next)
-        # print(len(Y_next))
