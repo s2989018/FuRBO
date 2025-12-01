@@ -1,0 +1,37 @@
+bbob-constrained_f002_i01_d02
+11/29/25 - 22:03:18: Start
+0) No feasible point yet! Smallest total violation: 7.88e+04
+1) Best value: 1.90e+03
+2) Best value: 1.90e+03
+3) Best value: 1.90e+03
+[DEBUG] Saving run 0: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:03:48: Finish
+Computation time: 29.65 seconds
+0) No feasible point yet! Smallest total violation: 1.12e+05
+1) No feasible point yet! Smallest total violation: 1.12e+05
+2) Best value: 1.91e+03
+3) Best value: 1.91e+03
+[DEBUG] Saving run 1: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:04:14: Finish
+Computation time: 55.09 seconds
+0) No feasible point yet! Smallest total violation: 1.92e+03
+1) No feasible point yet! Smallest total violation: 1.18e+04
+2) Best value: 1.95e+03
+3) Best value: 1.95e+03
+[DEBUG] Saving run 2: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:04:43: Finish
+Computation time: 25.00 seconds
+0) Best value: 1.86e+03
+1) Best value: 1.86e+03
+2) Best value: 1.86e+03
+3) Best value: 1.86e+03
+[DEBUG] Saving run 3: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:05:14: Finish
+Computation time: 55.82 seconds
+0) Best value: 1.79e+03
+1) Best value: 1.79e+03
+2) Best value: 1.79e+03
+3) Best value: 1.79e+03
+[DEBUG] Saving run 4: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:05:58: Finish
+Computation time: 39.52 seconds

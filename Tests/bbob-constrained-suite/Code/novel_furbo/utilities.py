@@ -47,6 +47,8 @@ def get_fitted_model(X, Y, dim, max_cholesky_size):
 
     return model
 
+
+
 def multivariate_distribution(centre, 
                               n_samples,
                               lb = None,

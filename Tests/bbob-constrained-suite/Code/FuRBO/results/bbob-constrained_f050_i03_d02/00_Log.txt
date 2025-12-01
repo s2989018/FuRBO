@@ -1,0 +1,32 @@
+bbob-constrained_f050_i03_d02
+11/29/25 - 17:30:44: Start
+0) Best value: -4.87e+02, MG radius: 1.0
+1) Best value: -7.53e+01, MG radius: 1.0
+2) Best value: -7.53e+01, MG radius: 1.0
+3) Best value: -7.53e+01, MG radius: 1.0
+11/29/25 - 17:30:47: Finish
+Computation time: 3.63 seconds
+0) Best value: -4.28e+02, MG radius: 1.0
+1) Best value: -3.13e+02, MG radius: 1.0
+2) Best value: -3.02e+02, MG radius: 1.0
+3) Best value: -3.02e+02, MG radius: 1.0
+11/29/25 - 17:30:51: Finish
+Computation time: 7.20 seconds
+0) Best value: -4.88e+02, MG radius: 1.0
+1) Best value: -1.08e+02, MG radius: 1.0
+2) Best value: -1.08e+02, MG radius: 1.0
+3) Best value: -1.08e+02, MG radius: 1.0
+11/29/25 - 17:30:55: Finish
+Computation time: 10.81 seconds
+0) Best value: -2.26e+02, MG radius: 1.0
+1) Best value: -2.26e+02, MG radius: 1.0
+2) Best value: -2.26e+02, MG radius: 1.0
+3) Best value: -1.25e+02, MG radius: 1.0
+11/29/25 - 17:30:58: Finish
+Computation time: 14.63 seconds
+0) Best value: -4.52e+02, MG radius: 1.0
+1) Best value: -1.39e+02, MG radius: 1.0
+2) Best value: -1.39e+02, MG radius: 1.0
+3) Best value: -9.52e+01, MG radius: 1.0
+11/29/25 - 17:31:02: Finish
+Computation time: 18.31 seconds

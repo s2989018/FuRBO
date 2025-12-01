@@ -5,9 +5,20 @@ from torch.quasirandom import SobolEngine
 from utilities import get_best_index_for_batch, get_fitted_model
 
 class variant_one():
-    def __init__(self, obj, cons, batch_size, n_init, n_iteration,
-                 tr_number, seed, history, iteration, samples_evaluated, **tkwargs):
-
+        # Initialization of the status
+    def __init__(self,              #
+                 obj,               # Objective function
+                 cons,              # Constraints function
+                 batch_size,        # Batch size of each iteration
+                 n_init,            # Number of initial points to evaluate
+                 n_iteration,       # Number of total iterations
+                 tr_number,         # number of Trust regions
+                 seed,              # Seed for Sobol sampling
+                 history,           # saved history to make all plots
+                 iteration,         # Numnber of iteration if restart
+                 samples_evaluated, # Number of samples already evaluated
+                 **tkwargs):
+  
         # Objective and constraint functions
         self.obj = obj
         self.lb, self.ub = obj.lower_bounds, obj.upper_bounds
@@ -30,7 +41,7 @@ class variant_one():
         id_mats = [torch.eye(self.dim, **tkwargs) for _ in range(tr_number)]
         self.tr_R = torch.stack(id_mats, dim=0)  # Rotation matrices for each TR
 
-        # Initialize per-TR local GP storage
+        # Initialize per-TR local GP 
         self.local_Y_gps = [None for _ in range(self.tr_number)]
 
         sobol_tmp = SobolEngine(dimension=self.dim, scramble=True, seed=seed)

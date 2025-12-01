@@ -1,126 +1,126 @@
 2445) bbob-constrained_f002_i01_d10:
 	 Started
-	 Completed - time: 46.35 seconds
-	 Completed - time: 24.06 seconds
-	 Completed - time: 3.90 seconds
-	 Completed - time: 48.70 seconds
-	 Completed - time: 40.49 seconds
+	 Completed - time: 52.59 seconds
+	 Completed - time: 30.37 seconds
+	 Completed - time: 14.34 seconds
+	 Completed - time: 58.03 seconds
+	 Completed - time: 45.02 seconds
 2446) bbob-constrained_f002_i02_d10:
 	 Started
-	 Completed - time: 56.88 seconds
-	 Completed - time: 44.31 seconds
-	 Completed - time: 28.71 seconds
-	 Completed - time: 17.79 seconds
-	 Completed - time: 2.69 seconds
+	 Completed - time: 49.52 seconds
+	 Completed - time: 34.49 seconds
+	 Completed - time: 18.09 seconds
+	 Completed - time: 7.14 seconds
+	 Completed - time: 51.63 seconds
 2447) bbob-constrained_f002_i03_d10:
 	 Started
-	 Completed - time: 41.28 seconds
-	 Completed - time: 24.35 seconds
-	 Completed - time: 15.99 seconds
-	 Completed - time: 2.28 seconds
-	 Completed - time: 50.01 seconds
+	 Completed - time: 54.62 seconds
+	 Completed - time: 46.65 seconds
+	 Completed - time: 33.62 seconds
+	 Completed - time: 20.01 seconds
+	 Completed - time: 7.70 seconds
 2475) bbob-constrained_f004_i01_d10:
 	 Started
-	 Completed - time: 24.26 seconds
-	 Completed - time: 44.71 seconds
-	 Completed - time: 8.52 seconds
-	 Completed - time: 26.32 seconds
-	 Completed - time: 39.54 seconds
+	 Completed - time: 21.18 seconds
+	 Completed - time: 39.67 seconds
+	 Completed - time: 57.07 seconds
+	 Completed - time: 15.82 seconds
+	 Completed - time: 35.50 seconds
 2476) bbob-constrained_f004_i02_d10:
 	 Started
-	 Completed - time: 19.98 seconds
-	 Completed - time: 35.59 seconds
-	 Completed - time: 56.51 seconds
-	 Completed - time: 15.05 seconds
-	 Completed - time: 31.28 seconds
+	 Completed - time: 24.32 seconds
+	 Completed - time: 43.70 seconds
+	 Completed - time: 11.21 seconds
+	 Completed - time: 35.20 seconds
+	 Completed - time: 2.73 seconds
 2477) bbob-constrained_f004_i03_d10:
 	 Started
-	 Completed - time: 10.06 seconds
-	 Completed - time: 25.04 seconds
-	 Completed - time: 38.81 seconds
-	 Completed - time: 58.05 seconds
-	 Completed - time: 11.40 seconds
+	 Completed - time: 13.15 seconds
+	 Completed - time: 39.10 seconds
+	 Completed - time: 4.61 seconds
+	 Completed - time: 32.13 seconds
+	 Completed - time: 53.93 seconds
 2505) bbob-constrained_f006_i01_d10:
 	 Started
-	 Completed - time: 51.29 seconds
-	 Completed - time: 44.63 seconds
-	 Completed - time: 36.54 seconds
-	 Completed - time: 39.54 seconds
-	 Completed - time: 30.84 seconds
+	 Completed - time: 7.10 seconds
+	 Completed - time: 28.38 seconds
+	 Completed - time: 44.98 seconds
+	 Completed - time: 42.39 seconds
+	 Completed - time: 42.65 seconds
 2506) bbob-constrained_f006_i02_d10:
 	 Started
-	 Completed - time: 50.80 seconds
-	 Completed - time: 42.56 seconds
-	 Completed - time: 33.85 seconds
-	 Completed - time: 25.39 seconds
-	 Completed - time: 25.63 seconds
+	 Completed - time: 55.76 seconds
+	 Completed - time: 9.68 seconds
+	 Completed - time: 17.61 seconds
+	 Completed - time: 22.42 seconds
+	 Completed - time: 30.28 seconds
 2507) bbob-constrained_f006_i03_d10:
 	 Started
-	 Completed - time: 4.50 seconds
-	 Completed - time: 11.17 seconds
-	 Completed - time: 8.47 seconds
-	 Completed - time: 9.56 seconds
-	 Completed - time: 10.19 seconds
+	 Completed - time: 19.98 seconds
+	 Completed - time: 36.53 seconds
+	 Completed - time: 36.60 seconds
+	 Completed - time: 0.18 seconds
+	 Completed - time: 20.70 seconds
 3165) bbob-constrained_f050_i01_d10:
 	 Started
-	 Completed - time: 8.77 seconds
-	 Completed - time: 11.90 seconds
-	 Completed - time: 14.40 seconds
-	 Completed - time: 30.27 seconds
-	 Completed - time: 31.80 seconds
+	 Completed - time: 11.01 seconds
+	 Completed - time: 7.75 seconds
+	 Completed - time: 4.41 seconds
+	 Completed - time: 13.63 seconds
+	 Completed - time: 10.45 seconds
 3166) bbob-constrained_f050_i02_d10:
 	 Started
-	 Completed - time: 54.98 seconds
-	 Completed - time: 53.70 seconds
-	 Completed - time: 53.59 seconds
-	 Completed - time: 51.96 seconds
-	 Completed - time: 6.72 seconds
+	 Completed - time: 29.53 seconds
+	 Completed - time: 21.46 seconds
+	 Completed - time: 29.71 seconds
+	 Completed - time: 44.59 seconds
+	 Completed - time: 6.91 seconds
 3167) bbob-constrained_f050_i03_d10:
 	 Started
-	 Completed - time: 57.69 seconds
-	 Completed - time: 7.15 seconds
-	 Completed - time: 4.05 seconds
-	 Completed - time: 6.52 seconds
-	 Completed - time: 26.36 seconds
+	 Completed - time: 13.07 seconds
+	 Completed - time: 41.24 seconds
+	 Completed - time: 38.15 seconds
+	 Completed - time: 44.25 seconds
+	 Completed - time: 18.50 seconds
 3195) bbob-constrained_f052_i01_d10:
 	 Started
-	 Completed - time: 25.78 seconds
-	 Completed - time: 52.41 seconds
-	 Completed - time: 26.10 seconds
-	 Completed - time: 59.28 seconds
-	 Completed - time: 20.62 seconds
+	 Completed - time: 41.91 seconds
+	 Completed - time: 22.53 seconds
+	 Completed - time: 5.08 seconds
+	 Completed - time: 39.42 seconds
+	 Completed - time: 2.40 seconds
 3196) bbob-constrained_f052_i02_d10:
 	 Started
-	 Completed - time: 43.95 seconds
-	 Completed - time: 14.56 seconds
-	 Completed - time: 37.30 seconds
-	 Completed - time: 21.30 seconds
-	 Completed - time: 2.29 seconds
+	 Completed - time: 47.71 seconds
+	 Completed - time: 16.23 seconds
+	 Completed - time: 36.72 seconds
+	 Completed - time: 32.80 seconds
+	 Completed - time: 22.91 seconds
 3197) bbob-constrained_f052_i03_d10:
 	 Started
-	 Completed - time: 25.61 seconds
-	 Completed - time: 55.66 seconds
-	 Completed - time: 33.60 seconds
-	 Completed - time: 55.10 seconds
-	 Completed - time: 17.07 seconds
+	 Completed - time: 27.61 seconds
+	 Completed - time: 3.89 seconds
+	 Completed - time: 41.21 seconds
+	 Completed - time: 7.84 seconds
+	 Completed - time: 40.52 seconds
 3225) bbob-constrained_f054_i01_d10:
 	 Started
-	 Completed - time: 29.16 seconds
-	 Completed - time: 56.52 seconds
-	 Completed - time: 1.10 seconds
-	 Completed - time: 38.68 seconds
-	 Completed - time: 15.39 seconds
+	 Completed - time: 22.13 seconds
+	 Completed - time: 47.39 seconds
+	 Completed - time: 10.84 seconds
+	 Completed - time: 58.20 seconds
+	 Completed - time: 41.99 seconds
 3226) bbob-constrained_f054_i02_d10:
 	 Started
-	 Completed - time: 16.45 seconds
-	 Completed - time: 40.04 seconds
-	 Completed - time: 46.73 seconds
-	 Completed - time: 56.61 seconds
-	 Completed - time: 19.64 seconds
+	 Completed - time: 29.27 seconds
+	 Completed - time: 9.36 seconds
+	 Completed - time: 40.03 seconds
+	 Completed - time: 2.64 seconds
+	 Completed - time: 41.79 seconds
 3227) bbob-constrained_f054_i03_d10:
 	 Started
-	 Completed - time: 27.74 seconds
-	 Completed - time: 0.28 seconds
-	 Completed - time: 26.78 seconds
-	 Completed - time: 33.81 seconds
-	 Completed - time: 58.15 seconds
+	 Completed - time: 51.04 seconds
+	 Completed - time: 57.43 seconds
+	 Completed - time: 43.67 seconds
+	 Completed - time: 4.42 seconds
+	 Completed - time: 37.55 seconds

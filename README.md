@@ -1,11 +1,17 @@
 Feasibility-Driven Trust Region Bayesian Optimization (FuRBO) is a Bayesian optimization for high dimensional and highly constrained problems.
 
-*This repository is intended to showcase the performance of FuRBO and to educate how to use/set up the method in Python*
-
 ## General information
-FuRBO is a Bayesian optimization for high-dimensional black-box functions under black-box constraints. The method we propose uses trust regions to reduce the search space to only the area where all constraints are fulfilled (i.e., the feasible area). To do so, the algorithm relies on approximating the black-box objective function and constraints with Gaussian process regression to estimate the location of the feasible area with the best objective function. The trust region is placed in the estimated feasible region.
+FuRBO is a Bayesian optimization for high-dimensional black-box functions under black-box constraints. This algorithm uses trust regions to reduce the search space to only the area where all constraints are fulfilled (i.e., the feasible area). To do so, the algorithm relies on approximating the black-box objective function and constraints with Gaussian process regression to estimate the location of the feasible area with the best objective function. The trust region is placed in the estimated feasible region.
+
+We propose a novel FuRBO variant which addresses a common challenge in trust-region-based BO methods, which struggle to efficiently exploit objective functions that are separable along directions not aligned with the coordinate axes.
+We extend this approach in two key ways:
+**Multiple trust regions**:
+Instead of relying on a single trust region, we use multiple(i.e. 3) trust regions. This allows the algorithm to explore several feasible subspaces in parallel and improves robustness in complex, high-dimensional landscapes.
+**PCA-based ellipsoidal trust regions**:
+We replace the original axis-aligned trust region with ellipsoidal trust regions using Principal Component Analysis (PCA). PCA captures the local geometry of the explored feasible samples, allowing the trust region to align with the dominant directions of variation in the data. Also, we use an adaptive rescaling strategy based on the length-scales of a local Gaussian process surrogate model with automatic relevance determination. This strategy is used for shrinking/expanding the trust regions. This results in more flexible region shapes compared to the fixed axis-aligned boxes in the original FuRBO. 
 
 #### Workflow
+**FuRBO**
 1. Generate initial samples
 2. Fit Gaussian processes to the objective function and constraints
 3. Find the current optimum:
@@ -22,16 +28,66 @@ FuRBO is a Bayesian optimization for high-dimensional black-box functions under 
 
 ![alt text](https://github.com/paoloascia/FuRBO/blob/main/Figures/workflow/graphical_abstract_furbo.png)
 
+**Novel FuRBO**
+## Novel FuRBO Workflow
+
+The novel FuRBO extends the original FuRBO by using **multiple trust regions** and **PCA-based ellipsoidal trust regions**. The workflow proceeds as follows:
+
+1. Generate initial samples using Sobol sequences
+
+2. Fit Gaussian Processes (GPs) to the objective function and constraints using the samples
+
+3. Identify current optima
+   - Each trust region tracks its local best feasible point.  
+   - If no feasible point exists in a region, the point with the smallest constraint violation is tracked.  
+   - The global best is determined from all trust region bests.
+
+4. Maintain multiple trust regions
+   - TRs explore different promising subspaces in parallel.  
+   - Each TR has its own center, radius, and PCA-based rotation matrix.
+
+5. Define PCA-based ellipsoidal trust regions  
+   - Trust regions are ellipsoids aligned with the principal components of feasible samples.  
+   - This allows exploration along directions of maximum variation rather than being constrained to axis-aligned boxes.
+
+6. Draw Thompson samples within each trust region  
+   For each trust region:
+   - Draw random perturbations in a multivariate ellipsoid defined by the TR center, radii, and PCA rotation.  
+   - Combine perturbations with the local best point to bias sampling toward promising regions.  
+   - Use Constrained Max Posterior Sampling to estimate the next optimum according to objective value and constraint violation
+
+7. Evaluate candidates on the true objective and constraints
+   - Update GP models and local/global best points after each batch evaluation.
+
+8. Adapt trust regions using PCA and GP lengthscales**  
+   For each TR:  
+   - Sample points inside the TR and evaluate their predicted objective and constraint values using the GP models.  
+   - Select top-performing points based on feasibility and objective.  
+   - Compute PCA on selected points to get principal directions (rotation) and mean (center).  
+   - Fit a local GP to extract lengthscales.  
+   - Update the TR **center** (`mu`), **rotation** (`R`), and **radii** (scaled PCA eigenvalues × GP lengthscales).
+
+
+9. **Update trust regions **  
+   - TR centers may shift toward **local best points** to bias sampling toward promising regions.
+
+10. **Repeat steps 2–9**  
+    - Continue until the **stopping criterion** (maximum evaluations) is met.
+
+11. **Post-processing**  
+    - Extract the best objective and constraint values at each iteration.  
+    - Generate monotonic convergence curves for visualization and analysis.
+
+
+
 ## Requirements
-The following libraries are required to set up and run FuRBO. The algorithm has been tested only with the version of the libraries listed below.
-- botorch (0.10.0)
-- gpytorch (1.11)
-- matplotlib (3.8.4)
-- numpy (1.24.3)
-- pytorch (2.3.0)
+To install all required Python packages, you can directly download the `requirements.txt`
+
+```bash
+pip install -r requirements.txt
+```
 
 ## How to run
-To run the optimization, download the repository from [here](https://anonymous.4open.science/api/repo/FuRBO/zip) FuRBO and run `FuRBO_restart.py` to optimize with restarts or `FuRBO_single.py` to optimize without restarts.
 
 1) Create a virtual environment
 ```bash
@@ -43,61 +99,37 @@ conda activate FuRBO
 cd FuRBO_repo
 pip install -r requirements.txt
 ```
-3) Run the optimization loop
+3) Run the optimization loop for the novel FuRBO and the (baseline) FuRBO
+
+**Novel FuRBO:**
 ```bash
-cd FuRBO
-python FuRBO_restart.py
+cd Tests/bbob-constrained-suite/Code/novel_furbo
+python 00_main.py
 ```
-or to run without restarts:
+**FuRBO** 
 ```bash
-cd FuRBO
-python FuRBO_single.py
+cd Tests/bbob-constrained-suite/Code/FuRBO
+python 00_main.py
+```
+4) Make the convergence plot for 2D and 10D --> after running optimization loop paste the results folder in below mentioned folders respectively
+**Novel FuRBO** 
+```bash
+cd ../Post-processing/novel_furbo
+```
+**Novel FuRBO** 
+```bash
+cd ../Post-processing/FuRBO
+```
+``` bash
+cd ../Post-processing/
+python FuRBOtenDim.py
+python FuRBOtwoDim.py
 ```
 
 ## Reproducibility
-To reproduce the results of our paper, please navigate to the folder containing the desired study (Tests -> ablation_study, across-algorithm-performance, or bbob-constrained-suite). In here, the folder Post-processing contains the raw data generated by us and the code used to read and generate the plots. The folder Code contains the code to reproduce the results. To generate the results, run `00_main.py`. Edit the file `00_main.py` to select the desired instances, dimensionality and functions. The raw data will be saved in the Results folder in `.npy` and `.torch` formats. The first type of files contain the monotonic convergence curve (`01_Y_mono.npy`), and the evaluated samples (`02_Y_best.npy`, `02_C_best.npy`). The `.torch` files contain all the information used by the algorithm to define the trust region, to train the surrogates and to estimate the next batch.
+To reproduce the results of the poster, please navigate to the folder Tests/bbob-constrained-suite. In here, the folder Post-processing contains the raw data generated by us and the code used to read and generate the plots. The folder Code contains the code to reproduce the results. To generate the results, run `00_main.py`. The raw data will be saved in the Results folder in `.npy` and `.torch` formats. The first type of files contain the monotonic convergence curve (`01_Y_mono.npy`), and the evaluated samples (`02_Y_best.npy`, `02_C_best.npy`). The `.torch` files contain all the information used by the algorithm to define the trust region, to train the surrogates and to estimate the next batch.
 
-## Repository Structure
-The repository is structured as follows:
-```
-└───FuRBO
-    |   └───`FuRBO_restart.py`: Main optimization loop with restarts
-    |   └───`FuRBO_single.py`: Main optimization loop without restarts
-    |   └───fcn
-    |       | └───`samplingStrategies.py`: script with all sampling strategies used during the optimization
-    |       | └───`states.py`: script with the classes to hold and update the main information needed for the optimization
-    |       | └───`stoppingNrestartCriterion.py`: script with stopping and restarting criteria
-    |       | └───`trustRegionUpdate.py`: script to define the trust region
-    |       | └───`utilities.py`: script with small utility functions
-└───Tutorials
-    |       └───`FuRBO_restart.ipynb`: Jupiter Notebook on how to set up FuRBO with restarts
-    |       └───`FuRBO_single.ipynb`: Jupiter Notebook on how to set up FuRBO without restarts
-└───Tests
-    |   └───ablation_study: folder with the raw data to plot the ablation study performed
-    |       |             └───batch_size: folder with raw data for the ablation study on the batch size. The following batches are evaluated: q=1, 1D, 2D, 3D, 4D, 5D
-    |       |             └───doe_size: folder with raw data for the ablation study on the initial sample set size. The following sizes are evaluated: doe=1D, 3D, 5D, 10D
-    |       |             └───inspector_percentage: folder with raw data for the ablation study on the percentage of inspectors used to define the trust region. The following percentages are evaluated: p=0.01, 0.05, 0.1, 0.2
-    |   └───across-algorithm-performance: folder with the raw data to plot the comparison between FuRBO and other common constrained optimization algorithms
-    |   └───bbob-constrained-suite: folder containing all the raw data to assess the performance of FuRBO against SCBO on the bbob-constrained benchmark suite.
-└───Figures: figures used throughout the git
-```
-
-## Examples and Benchmarking
-- For examples of how to set up the FuRBO optimization loop, please refer to the Jupyter notebooks in the Tutorial folder. In this folder, the following examples are available:
-	- Maximization of the 10D Ackley function under two easy constraint functions without restarts
-	- Maximization of the 10D Ackley function under two easy constraint functions with restarts
-
-- To understand how FuRBO performs, please refer to the tests available. To load and plot the data related, please download the desired folder and unzip the folder named "Experiments". Then, run the python script within the folder. The plot will be saved directly in this folder. The following studies are available:
-	- Performance of FuRBO on the bbob-constrained benchmark suite compared to SCBO with batch size 3D (folder: bbob-constrained-suite);
- 	- Comparison between a random sampling, COBYLA, CMA-ES, Constrained-EI, SCBO and FuRBO on a sequential optimization on a selection of functions from the bbob-constrained benchmark suite (folder: across-algorithm-performance)
-  	- An ablation study on the influence of the following hyper-parameters:
-  		- initial sample set size (folder: ablation_study -> doe_size)
-  	 	- batch size per iteration (folder: ablation_study -> batch_siye)
-  	  	- the percentage of inspectors to define the trust region (folder: ablation_study -> inspectors_percentage)
-
-[1]: David Eriksson and Matthias Poloczek. Scalable constrained Bayesian optimization. In International Conference on Artificial Intelligence and Statistics, pages 730–738. PMLR, 2021. doi: [10.48550/arxiv.2002.08526](https://doi.org/10.48550/arxiv.2002.08526).
-
-## Cite us
+## Reference
 ```
 @article{ascia2025feasibility,
   title={Feasibility-Driven Trust Region Bayesian Optimization},
@@ -106,6 +138,9 @@ The repository is structured as follows:
   year={2025}
   doi={https://doi.org/10.48550/arXiv.2506.14619}
 }
-```
+
+The original FuRBO implementation can be found here:  
+**https://github.com/paoloascia/FuRBO**
+
 
 

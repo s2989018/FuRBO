@@ -19,36 +19,6 @@ def get_initial_points_sobol(FuRBO, **tkwargs):
     X_init = FuRBO.sobol.draw(n=FuRBO.n_init).to(**tkwargs)
     return X_init
 
-# Generate initial points inside rotated PCA-based trust regions.
-def get_initial_points_rotated_TR(state, n_init=None, **tkwargs):
-
-    if n_init is None:
-        n_init = state.n_init
-
-    X_init = torch.empty((n_init, state.dim), **tkwargs)
-    
-    for i in range(state.tr_number):
-        # Determine number of points per TR
-        points_per_TR = n_init // state.tr_number
-        if i == state.tr_number - 1:
-            points_per_TR = n_init - (points_per_TR * i)
-
-        # Sample in unit cube and scale by TR radius
-        u = torch.rand(points_per_TR, state.dim, **tkwargs) * 2 - 1
-        u = u / u.norm(dim=1, keepdim=True)  
-        u = u * state.tr_radii[i]          
-
-        # Rotate via PCA and translate to TR center
-        X_cand = u @ state.tr_R[i].T + state.tr_center[i]
-
-        X_cand = X_cand.clamp(0.0, 1.0)
-
-        start = i * (n_init // state.tr_number)
-        end = start + points_per_TR
-        X_init[start:end, :] = X_cand
-
-    return X_init
-
 ##########
 # Candidate generation (Thompson sampling) in rotated PCA-based TRs
 

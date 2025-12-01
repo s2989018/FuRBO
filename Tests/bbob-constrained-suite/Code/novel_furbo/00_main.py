@@ -35,15 +35,12 @@ from botorch.sampling.qmc import NormalQMCEngine
 
 ###
 # Custom imports
-import constraints
 from FuRBOSamplingStrategies import get_initial_points_sobol as get_initial_points
-# from FuRBOSamplingStrategies import get_initial_points_rotated_TR as get_initial_points
 from FuRBOSamplingStrategies import generate_batch_thompson_sampling_rotated_TR as generate_batch
 from FuRBOStates import variant_one
 from FuRBOStopping import max_evaluations as stopping_criterion
 from FuRBOTrustUpdate import multinormal_radius as update_tr
 from FuRBORestart import min_radius as restart_criterion
-import objectives
 import plotting
 from visual import plot_TRs
 
@@ -104,7 +101,7 @@ for p in suite:
     batch_size = int(3 * p.dimension)
     n_init = int(3 * p.dimension)
     n_iteration = int(10 * p.dimension)
-    tr_number = 3        # keep your modified value (original main used 1)
+    tr_number = 3      
     N_CANDIDATES = 2000
 
 
@@ -209,7 +206,7 @@ for p in suite:
                 # Update Trust regions
                 FuRBO_status = update_tr(FuRBO_status, **tkwargs)
 
-                # # 2D/3D plot of TRs
+                # # 2D plot of TRs, only works for 2D problems
                 # try:
                 #     plot_TRs(FuRBO_status)   # <-- call your visual function here
                 # except Exception as e:

@@ -1,37 +1,37 @@
 bbob-constrained_f006_i03_d10
-11/27/25 - 00:49:20: Start
+11/30/25 - 00:35:31: Start
 0) No feasible point yet! Smallest total violation: 2.99e+05
-1) No feasible point yet! Smallest total violation: 1.35e+04
-2) No feasible point yet! Smallest total violation: 4.57e+03
-3) No feasible point yet! Smallest total violation: 1.90e+03
+1) No feasible point yet! Smallest total violation: 2.99e+05
+2) No feasible point yet! Smallest total violation: 2.99e+05
+3) No feasible point yet! Smallest total violation: 2.99e+05
 [DEBUG] Saving run 0: Total history entries = 4 (max allowed = 100), samples = 120
-11/27/25 - 00:52:25: Finish
-Computation time: 4.50 seconds
+11/30/25 - 00:38:37: Finish
+Computation time: 5.20 seconds
 0) No feasible point yet! Smallest total violation: 5.06e+05
-1) No feasible point yet! Smallest total violation: 2.31e+04
-2) No feasible point yet! Smallest total violation: 5.61e+03
-3) No feasible point yet! Smallest total violation: 3.86e+03
+1) No feasible point yet! Smallest total violation: 3.30e+05
+2) No feasible point yet! Smallest total violation: 3.30e+05
+3) No feasible point yet! Smallest total violation: 2.29e+05
 [DEBUG] Saving run 1: Total history entries = 4 (max allowed = 100), samples = 120
-11/27/25 - 00:55:32: Finish
-Computation time: 11.17 seconds
+11/30/25 - 00:41:36: Finish
+Computation time: 5.09 seconds
 0) No feasible point yet! Smallest total violation: 4.25e+05
-1) No feasible point yet! Smallest total violation: 2.32e+04
-2) No feasible point yet! Smallest total violation: 8.74e+03
-3) No feasible point yet! Smallest total violation: 3.04e+03
+1) No feasible point yet! Smallest total violation: 3.39e+05
+2) No feasible point yet! Smallest total violation: 3.39e+05
+3) No feasible point yet! Smallest total violation: 1.46e+05
 [DEBUG] Saving run 2: Total history entries = 4 (max allowed = 100), samples = 120
-11/27/25 - 00:58:29: Finish
-Computation time: 8.47 seconds
+11/30/25 - 00:44:35: Finish
+Computation time: 3.24 seconds
 0) No feasible point yet! Smallest total violation: 4.20e+05
-1) No feasible point yet! Smallest total violation: 2.02e+04
-2) No feasible point yet! Smallest total violation: 5.32e+03
-3) No feasible point yet! Smallest total violation: 4.22e+03
+1) No feasible point yet! Smallest total violation: 3.21e+05
+2) No feasible point yet! Smallest total violation: 3.21e+05
+3) No feasible point yet! Smallest total violation: 2.05e+05
 [DEBUG] Saving run 3: Total history entries = 4 (max allowed = 100), samples = 120
-11/27/25 - 01:01:30: Finish
-Computation time: 9.56 seconds
+11/30/25 - 00:47:36: Finish
+Computation time: 4.88 seconds
 0) No feasible point yet! Smallest total violation: 5.18e+05
-1) No feasible point yet! Smallest total violation: 2.95e+04
-2) No feasible point yet! Smallest total violation: 4.79e+03
-3) No feasible point yet! Smallest total violation: 4.48e+02
+1) No feasible point yet! Smallest total violation: 4.68e+05
+2) No feasible point yet! Smallest total violation: 2.93e+05
+3) No feasible point yet! Smallest total violation: 2.93e+05
 [DEBUG] Saving run 4: Total history entries = 4 (max allowed = 100), samples = 120
-11/27/25 - 01:04:31: Finish
-Computation time: 10.19 seconds
+11/30/25 - 00:50:35: Finish
+Computation time: 3.85 seconds

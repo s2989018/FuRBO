@@ -1,0 +1,37 @@
+bbob-constrained_f050_i01_d02
+11/29/25 - 22:47:54: Start
+0) Best value: -3.90e+02
+1) Best value: -3.90e+02
+2) Best value: -2.45e+02
+3) Best value: -2.45e+02
+[DEBUG] Saving run 0: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:48:38: Finish
+Computation time: 44.06 seconds
+0) Best value: -6.66e+02
+1) Best value: -6.66e+02
+2) Best value: -3.22e+02
+3) Best value: -3.22e+02
+[DEBUG] Saving run 1: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:49:16: Finish
+Computation time: 21.81 seconds
+0) Best value: -3.90e+02
+1) Best value: -3.90e+02
+2) Best value: -3.03e+02
+3) Best value: -3.03e+02
+[DEBUG] Saving run 2: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:49:59: Finish
+Computation time: 5.39 seconds
+0) Best value: -6.10e+02
+1) Best value: -3.46e+02
+2) Best value: -3.46e+02
+3) Best value: -3.46e+02
+[DEBUG] Saving run 3: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:50:41: Finish
+Computation time: 47.30 seconds
+0) Best value: -3.25e+02
+1) Best value: -1.08e+02
+2) Best value: -1.08e+02
+3) Best value: -1.08e+02
+[DEBUG] Saving run 4: Total history entries = 4 (max allowed = 20), samples = 24
+11/29/25 - 22:51:32: Finish
+Computation time: 37.84 seconds

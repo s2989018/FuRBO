@@ -1,0 +1,32 @@
+bbob-constrained_f002_i01_d02
+11/29/25 - 17:20:38: Start
+0) Best value: 1.90e+03, MG radius: 1.0
+1) Best value: 2.01e+03, MG radius: 1.0
+2) Best value: 1.61e+03, MG radius: 1.0
+3) Best value: 2.00e+03, MG radius: 1.0
+11/29/25 - 17:20:42: Finish
+Computation time: 4.79 seconds
+0) Best value: 1.70e+03, MG radius: 1.0
+1) Best value: 1.92e+03, MG radius: 1.0
+2) Best value: 2.02e+03, MG radius: 1.0
+3) Best value: 2.02e+03, MG radius: 1.0
+11/29/25 - 17:20:47: Finish
+Computation time: 9.75 seconds
+0) No feasible point yet! Smallest total violation: 1.92e+03, MG radius: 1.0
+1) Best value: 2.01e+03, MG radius: 1.0
+2) Best value: 2.02e+03, MG radius: 1.0
+3) Best value: 2.02e+03, MG radius: 1.0
+11/29/25 - 17:20:52: Finish
+Computation time: 14.12 seconds
+0) Best value: 1.86e+03, MG radius: 1.0
+1) Best value: 1.94e+03, MG radius: 1.0
+2) Best value: 2.01e+03, MG radius: 1.0
+3) Best value: 2.02e+03, MG radius: 1.0
+11/29/25 - 17:20:57: Finish
+Computation time: 19.84 seconds
+0) Best value: 1.79e+03, MG radius: 1.0
+1) Best value: 2.02e+03, MG radius: 1.0
+2) Best value: 2.02e+03, MG radius: 1.0
+3) Best value: 2.02e+03, MG radius: 1.0
+11/29/25 - 17:21:02: Finish
+Computation time: 24.40 seconds

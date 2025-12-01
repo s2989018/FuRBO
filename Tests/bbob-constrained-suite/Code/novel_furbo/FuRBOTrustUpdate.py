@@ -32,7 +32,7 @@ def _make_radii_from_eigvals(eigvals: torch.Tensor, base_scale: float, min_lengt
     lengths = lengths.clamp(min=min_length, max=max_length)
     return lengths
 
-
+# Extract GP lengthscales
 def _get_gp_lengthscales(model):
 
     try:
@@ -49,7 +49,7 @@ def _get_gp_lengthscales(model):
 
 
 #######
-# PCA-based multi-TR updating function
+# PCA-based multi-trust-region adaptation function
 
 def multinormal_radius(state,              # FuRBO state
                        n_samples_factor: int = 1000,
@@ -64,8 +64,6 @@ def multinormal_radius(state,              # FuRBO state
     n_samples = max(4, n_samples_factor * d)
     lb = torch.zeros(d, **tkwargs)
     ub = torch.ones(d, **tkwargs)
-
-
  
     # Clamping values (normalized domain)
     min_axis_length = min_axis_fraction
@@ -85,9 +83,9 @@ def multinormal_radius(state,              # FuRBO state
 
     # For each trust region
     for ind in range(state.tr_number):
+        # Sample points inside the current trust region
         samples = multivariate_ellipsoid( center=state.tr_center[ind], radii=state.tr_radii[ind],R=state.tr_R[ind],n_samples=n_samples,
                                          lb=lb, ub=ub,**tkwargs)
-
 
         # Evaluate the samples using surrogate models of objective and constraints
         state.Y_model.eval()
@@ -104,9 +102,11 @@ def multinormal_radius(state,              # FuRBO state
         samples_cc = samples_cc / (torch.abs(samples_cc).max(dim=0).values + eps)
         samples_cc = torch.max(samples_cc, dim=1).values
 
-        # Order the samples for feasibility and for best objective
+        # Determine number of points to select for TR adaptation
         n_samples_tr = max(int(n_samples * percentage), 4)
+        # Select top samples based on feasibility and objective
         if torch.any(samples_cc < 0):
+            # Some points are feasible
             feasible_idx = torch.where(samples_cc <= 0)[0]
             infeasible_idx = torch.where(samples_cc > 0)[0]
 
@@ -121,6 +121,7 @@ def multinormal_radius(state,              # FuRBO state
                 infeasible_idx[infeasible_sorted_ids]
             ])[:n_samples_tr]
         else:
+            # No feasible points; select points with smallest constraint violation
             if n_samples_tr > len(samples_cc):
                 n_samples_tr = len(samples_cc)
 
@@ -129,7 +130,7 @@ def multinormal_radius(state,              # FuRBO state
 
         chosen_samples = samples[chosen_idx]
 
-        # Compute PCA from chosen samples
+        # Compute PCA for chosen samples
         mu, R, eigvals = _compute_pca_from_samples(chosen_samples, eps=eps)
 
         # Fit local GP per trust region to adapt its radius
@@ -142,17 +143,16 @@ def multinormal_radius(state,              # FuRBO state
             print("gp_ls is NONE")
             gp_ls = torch.ones(d, **tkwargs)
 
-        # Convert eigvalues to axis lengths and clamp to the fractions
+        # Convert PCA eigenvalues into axis lengths and scale by GP lengthscales
         axis_lengths = _make_radii_from_eigvals(eigvals, base_scale=base_scale,
                                                 min_length=min_axis_length,
                                                 max_length=max_axis_length)
-        # Normalized axis_lengths 
         axis_lengths = axis_lengths.to(dtype=mu.dtype, device=mu.device)
+        adaptive_radii = axis_lengths * gp_ls  
 
-        adaptive_radii = axis_lengths * gp_ls  # multiply per-dimension
-
+        # Update trust region state
         state.tr_R[ind] = R
         state.tr_center[ind] = mu
-        state.tr_radii[ind] = adaptive_radii       # assign per-axis lengths
+        state.tr_radii[ind] = adaptive_radii     
 
     return state
