@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import cocoex
 from botorch.models import SingleTaskGP, ModelListGP
 from botorch.models.transforms import Standardize
 from botorch.fit import fit_gpytorch_mll
@@ -9,21 +10,42 @@ from botorch.acquisition.objective import ConstrainedMCObjective
 from botorch.optim import optimize_acqf
 from gpytorch.mlls import ExactMarginalLogLikelihood
 
-# ===============================================================
-# Helper functions for MC objective
-# ===============================================================
-def obj_from_samples(samples, X=None, **kwargs):
-    """Return objective values from MC samples (first column)"""
-    return samples[..., 0]
+def evaluate_objective(x, coco_fun, coco_instance, dim=None):
 
-def make_con(j):
-    """Return constraint j from MC samples (starting at 1)"""
-    return lambda samples, j=j, X=None, **kwargs: samples[..., j + 1]
+    inst_id = f"i{coco_instance+1:02d}"
+    fun_id = f"f{coco_fun:03d}"
 
-# ===============================================================
-# Custom qLogExpectedImprovement (stable Log-EI)
-# ===============================================================
+    suite = cocoex.Suite("bbob-constrained", "", "")
+    for p in suite:
+        parts = p.id.split('_')
+        if len(parts) >= 4 and parts[1] == fun_id and parts[2] == inst_id:
+            if dim is None or parts[3] == f"d{int(dim):02d}":
+                arr = np.asarray(x, dtype=np.float64)
+                return float(p(arr))
+
+    raise ValueError(f"COCO problem f{coco_fun} i{coco_instance+1} not found in suite")
+
+
+def evaluate_constraints(x, coco_fun, coco_instance, dim=None):
+
+    inst_id = f"i{coco_instance+1:02d}"
+    fun_id = f"f{coco_fun:03d}"
+
+    suite = cocoex.Suite("bbob-constrained", "", "")
+    for p in suite:
+        parts = p.id.split('_')
+        if len(parts) >= 4 and parts[1] == fun_id and parts[2] == inst_id:
+            if dim is None or parts[3] == f"d{int(dim):02d}":
+                arr = np.asarray(x, dtype=np.float64)
+                c = p.constraint(arr)
+                return np.asarray(c, dtype=np.float64)
+
+    raise ValueError(f"COCO problem f{coco_fun} i{coco_instance+1} not found in suite")
+
+
 class qLogExpectedImprovement(MCAcquisitionFunction):
+    """Monte-Carlo Log Expected Improvement acquisition with robust sampler handling."""
+
     def __init__(self, model, best_f, objective=None, sampler=None):
         def _make_sampler(n=256):
             try:
@@ -38,15 +60,11 @@ class qLogExpectedImprovement(MCAcquisitionFunction):
                 return SobolQMCNormalSampler(sample_shape=(n,))
             except Exception:
                 pass
-            # Fallback
-            try:
-                from botorch.sampling import IIDNormalSampler
-                return IIDNormalSampler(num_samples=n)
-            except Exception:
-                raise RuntimeError("Cannot construct MC sampler; check BoTorch version")
+            from botorch.sampling import IIDNormalSampler
 
-        if sampler is None:
-            sampler = _make_sampler(256)
+            return IIDNormalSampler(num_samples=n)
+
+        sampler = sampler or _make_sampler(256)
         super().__init__(model=model, sampler=sampler, objective=objective)
         self.best_f = best_f
 
@@ -54,29 +72,58 @@ class qLogExpectedImprovement(MCAcquisitionFunction):
         samples = self.get_samples(X)
         obj = self.objective(samples=samples, X=X)
 
-        improvement = (self.best_f - obj).clamp_min(0)
-        if improvement.dim() >= 2:
-            per_sample = improvement.mean(dim=-1)
+        if obj.dim() >= 2:
+            improvement = (self.best_f - obj).clamp_min(0)
+            if improvement.dim() >= 2:
+                per_sample = improvement.mean(dim=-1)
+            else:
+                per_sample = improvement
             ei = per_sample.mean(dim=0)
         else:
-            ei = improvement
+            ei = (self.best_f - obj).clamp_min(0)
+
         return torch.log(ei + 1e-8)
 
     def get_samples(self, X):
         if not torch.is_tensor(X):
             X = torch.as_tensor(X, dtype=next(self.model.parameters()).dtype)
-        posterior = self.model.posterior(X)
+
         try:
-            return self.sampler(posterior)
+            posterior = self.model.posterior(X)
         except Exception:
-            n = getattr(self.sampler, 'num_samples', 256)
+            posterior = self.model.posterior(X.unsqueeze(0))
+
+        # Try sampler call patterns, fallback to posterior.rsample
+        if hasattr(self, 'sampler') and self.sampler is not None:
             try:
-                return posterior.rsample(torch.Size([n]))
+                return self.sampler(posterior)
             except Exception:
-                raise RuntimeError('Unable to draw MC samples from posterior')
+                pass
+
+            n = getattr(self.sampler, 'num_samples', None) or getattr(self.sampler, '_num_samples', None)
+            if n is None:
+                sh = getattr(self.sampler, 'sample_shape', None)
+                if isinstance(sh, (tuple, list, torch.Size)) and len(sh) > 0:
+                    try:
+                        n = int(sh[0])
+                    except Exception:
+                        n = None
+            n = n or 256
+
+            for call in (lambda p: self.sampler(p, num_samples=n), lambda p: self.sampler(p, sample_shape=torch.Size([n]))):
+                try:
+                    return call(posterior)
+                except Exception:
+                    pass
+
+        try:
+            return posterior.rsample(torch.Size([256]))
+        except Exception:
+            raise RuntimeError('Unable to draw MC samples from the model posterior')
+
 
 # ===============================================================
-# Safe GP fit
+#  Safe GP fit (avoid crashes)
 # ===============================================================
 def safe_fit_gp(gp, name="gp"):
     mll = ExactMarginalLogLikelihood(gp.likelihood, gp)
@@ -85,46 +132,29 @@ def safe_fit_gp(gp, name="gp"):
     except Exception as e:
         print(f"[WARN] GP fit failed for {name}, continuing. Error: {e}")
 
-# ===============================================================
-# Main function
-# ===============================================================
-def run_botorch_qlogei(p, seed=0, budget=None):
-    """
-    Run qLogEI optimization on a COCO problem object `p`.
 
-    p: COCO problem object from a suite
-    seed: random seed
-    budget: number of evaluations (default: 10 * p.dimension)
-    """
+# ===============================================================
+#               Baseline qLogEI for COCO constrained problem
+# ===============================================================
+def run_botorch_qlogei(dim, budget, coco_fun, coco_instance, seed=0):
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    dim = p.dimension
-    if budget is None:
-        budget = 10 * dim
-
-    # -------------------------------
-    # Initial random design
-    # -------------------------------
     n_init = min(10, 5 * dim)
-    X = np.random.uniform(p.lower_bounds, p.upper_bounds, size=(n_init, dim))
+    X = np.random.uniform(-5, 5, size=(n_init, dim))
 
-    y_obj = []
-    y_con = []
-
+    obj_vals = []
+    con_vals = []
     for x in X:
-        y_obj.append(p(x))
-        y_con.append(p.constraint(x))
+        obj_vals.append(evaluate_objective(x, coco_fun, coco_instance, dim))
+        con_vals.append(evaluate_constraints(x, coco_fun, coco_instance, dim))
 
     X_t = torch.tensor(X, dtype=torch.double)
-    y_obj = torch.tensor(y_obj, dtype=torch.double).unsqueeze(-1)
-    y_con = torch.tensor(y_con, dtype=torch.double)
+    y_obj = torch.tensor(obj_vals, dtype=torch.double).unsqueeze(-1)
+    y_con = torch.tensor(con_vals, dtype=torch.double)
     if y_con.dim() == 1:
         y_con = y_con.unsqueeze(1)
 
-    # -------------------------------
-    # Fit initial GP models
-    # -------------------------------
     gp_obj = SingleTaskGP(X_t, y_obj, outcome_transform=Standardize(m=1))
     safe_fit_gp(gp_obj, "objective")
 
@@ -136,39 +166,31 @@ def run_botorch_qlogei(p, seed=0, budget=None):
 
     model = ModelListGP(gp_obj, *gp_cons)
 
-    # -------------------------------
-    # Constrained MC Objective
-    # -------------------------------
+    def obj_from_samples(samples, X=None, **kwargs):
+        return samples[..., 0]
+
+    def make_con(j):
+        return lambda samples, j=j, X=None, **kwargs: samples[..., j + 1]
+
     constraints = [make_con(j) for j in range(y_con.shape[1])]
     objective = ConstrainedMCObjective(objective=obj_from_samples, constraints=constraints)
 
-    # -------------------------------
-    # BO Loop
-    # -------------------------------
     eval_count = n_init
-    bounds = torch.tensor([p.lower_bounds, p.upper_bounds], dtype=torch.double)
+    bounds = torch.tensor([[-5.0] * dim, [5.0] * dim], dtype=torch.double)
 
     while eval_count < budget:
         feas = torch.all(y_con <= 0, dim=1)
         best_f = y_obj[feas].min() if torch.any(feas) else y_obj.min()
 
         acq = qLogExpectedImprovement(model=model, best_f=best_f, objective=objective)
-
-        candidate, _ = optimize_acqf(
-            acq_function=acq,
-            bounds=bounds,
-            q=1,
-            num_restarts=5,
-            raw_samples=64
-        )
+        candidate, _ = optimize_acqf(acq_function=acq, bounds=bounds, q=1, num_restarts=5, raw_samples=64)
 
         candidate = candidate.reshape(1, -1)
         x_new = candidate.detach().cpu().numpy()[0]
 
-        f_new = p(x_new)
-        g_new = p.constraint(x_new)
+        f_new = evaluate_objective(x_new, coco_fun, coco_instance, dim)
+        g_new = evaluate_constraints(x_new, coco_fun, coco_instance, dim)
 
-        # Add new point
         X_t = torch.cat([X_t, candidate], dim=0)
         y_obj = torch.cat([y_obj, torch.tensor([[f_new]], dtype=torch.double)], dim=0)
 
@@ -177,7 +199,6 @@ def run_botorch_qlogei(p, seed=0, budget=None):
             g_new_t = g_new_t.unsqueeze(0)
         y_con = torch.cat([y_con, g_new_t], dim=0)
 
-        # Refit GPs
         gp_obj = SingleTaskGP(X_t, y_obj, outcome_transform=Standardize(m=1))
         safe_fit_gp(gp_obj, "objective")
 
@@ -190,4 +211,4 @@ def run_botorch_qlogei(p, seed=0, budget=None):
         model = ModelListGP(gp_obj, *gp_cons)
         eval_count += 1
 
-    return y_obj, y_con, X_t
+    return y_obj, y_con, X_t.numpy()

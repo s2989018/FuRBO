@@ -77,13 +77,48 @@ def plot_convergence(crv, ax):
             tmp[tmp==np.amax(tmp)] = y_s_max
         y_S = np.vstack([y_S, tmp])
     
-    # Find worst feasible
-    y_max = np.amax([y_f_max, y_s_max])
+
+    cwd = os.path.join(os.getcwd(), 'Experiments', 'botorch')
+
+    # Load data
+    crv_seed = crv[:-5] + '1' + crv[-4:]
+    if crv_seed in os.listdir(cwd):
+        file_name = os.path.join(cwd, crv_seed, '01_Y_mono.npy')
+        y_B = np.load(file_name) - fmin[crv]
+        y_b_max = np.amax(y_B)
+        y_B[y_B == np.amax(y_B)] = y_b_max
+
+    crv_seed = crv[:-5] + '2' + crv[-4:]
+    if crv_seed in os.listdir(cwd):
+        file_name = os.path.join(cwd, crv_seed, '01_Y_mono.npy')
+        tmp = np.load(file_name) - fmin[crv]
+        if y_b_max < np.amax(tmp):
+            y_b_max = np.amax(tmp)
+            y_B[y_B == np.amax(y_B)] = y_b_max
+        else:
+            tmp[tmp == np.amax(tmp)] = y_b_max
+        y_B = np.vstack([y_B, tmp])
+
+    crv_seed = crv[:-5] + '3' + crv[-4:]
+    if crv_seed in os.listdir(cwd):
+        file_name = os.path.join(cwd, crv_seed, '01_Y_mono.npy')
+        tmp = np.load(file_name) - fmin[crv]
+        if y_b_max < np.amax(tmp):
+            y_b_max = np.amax(tmp)
+            y_B[y_B == np.amax(y_B)] = y_b_max
+        else:
+            tmp[tmp == np.amax(tmp)] = y_b_max
+        y_B = np.vstack([y_B, tmp])
+
+
     
-    # Exchange worst feasible
+    # Find worst feasible
+    y_max = max(np.amax(y_F), np.amax(y_S), np.amax(y_B))
     y_F[y_F==np.amax(y_F)] = y_max
     y_S[y_S==np.amax(y_S)] = y_max
-        
+    y_B[y_B==np.amax(y_B)] = y_max
+
+
     # Elaborate FuRBO data
     mean = np.mean(y_F, axis = 0)
     lb = mean - np.std(y_F, axis = 0)/np.sqrt(y_F.shape[0])
@@ -105,6 +140,21 @@ def plot_convergence(crv, ax):
     # Plot convergence of SCBO
     ax.plot(x, mean, color = 'darkgreen', lw=2)
     ax.fill_between(x, lb, ub, alpha = 0.2, color='darkgreen', lw=2)
+    if np.amax(ub) + 0.1 * np.amax(ub) > top:
+        top = np.amax(ub) + 0.1 * np.amax(ub)
+    if np.amax(mean)/2 > middle:
+        middle = np.amax(mean)/2
+
+    
+    # Elaborate BoTorch data
+    mean = np.mean(y_B, axis=0)
+    lb = mean - np.std(y_B, axis=0)/np.sqrt(y_B.shape[0])
+    ub = mean + np.std(y_B, axis=0)/np.sqrt(y_B.shape[0])
+    x = np.linspace(1, len(mean), len(mean))
+
+    # Plot convergence of BoTorch
+    ax.plot(x, mean, color='darkblue', lw=2)
+    ax.fill_between(x, lb, ub, alpha=0.2, color='darkblue', lw=2)
     if np.amax(ub) + 0.1 * np.amax(ub) > top:
         top = np.amax(ub) + 0.1 * np.amax(ub)
     if np.amax(mean)/2 > middle:
@@ -196,11 +246,15 @@ ax.set_xticks([0, 50, 100, 150])
 ax.set_xticklabels(['0', '50', '100', '150'], rotation=45)
 ax.set_xlabel('Evaluations')
 
+
 # Add legend
 ax = plt.subplot(gs[0, :])
-patchList = [patches.Patch(color='darkorange', label='FuRBO'),
-             patches.Patch(color='darkgreen', label='novel_FuRBO')]
-ax.legend(ncols=2, handles=patchList, loc='center')
+patchList = [
+    patches.Patch(color='darkorange', label='FuRBO'),
+    patches.Patch(color='darkgreen', label='novel_FuRBO'),
+    patches.Patch(color='darkblue', label='BoTorch')  
+]
+ax.legend(ncols=3, handles=patchList, loc='center')
 ax.axis('off')  # hide axes for legend
 
 
