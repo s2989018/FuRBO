@@ -206,7 +206,7 @@ ax.axis('off')  # hide axes for legend
 
 
 # Save figure
-fig.savefig(os.path.join(os.getcwd(), 'FuRBOtenDim' + '.png'), dpi=600)
+fig.savefig(os.path.join(os.getcwd(), 'FuRBOtwoDim' + '.png'), dpi=600)
     
 # Close figure
 plt.close(fig)

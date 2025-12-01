@@ -134,7 +134,12 @@ def multinormal_radius(state,              # FuRBO state
         mu, R, eigvals = _compute_pca_from_samples(chosen_samples, eps=eps)
 
         # Fit local GP per trust region to adapt its radius
-        local_gp = get_fitted_model(chosen_samples, samples_yy[chosen_idx].unsqueeze(-1), state.dim)
+        try:
+            local_gp = get_fitted_model(chosen_samples, samples_yy[chosen_idx].unsqueeze(-1), state.dim)
+        except Exception as e:
+            print(f"Warning: get_fitted_model failed for TR {ind} with error: {e}")
+            local_gp = None
+
         state.local_Y_gps[ind] = local_gp
 
         # Extract lengthscales

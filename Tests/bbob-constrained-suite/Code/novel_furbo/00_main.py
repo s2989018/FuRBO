@@ -62,7 +62,7 @@ f_gen = open(os.path.join(cwd_base, '00_GeneralLog.txt'), 'w')
 
 functions_to_run = ['f002', 'f004', 'f006', 'f050', 'f052', 'f054']
 instances_to_run = ['i01', 'i02', 'i03']
-dimensions_to_run = ['d10']
+dimensions_to_run = ['d02','d10']
 repetitions_per_instance = 5
 
 for p in suite:
